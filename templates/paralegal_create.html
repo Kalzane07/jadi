@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .Title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .sidebar {
+            height: 100vh;
+            width: 240px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #212529;
+            padding-top: 60px;
+        }
+        .sidebar a {
+            padding: 12px 20px;
+            display: block;
+            color: #adb5bd;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+            color: #fff;
+        }
+        .sidebar .submenu { padding-left: 30px; font-size: 14px; }
+        .content { margin-left: 240px; padding: 20px; }
+        .navbar { position: fixed; top: 0; left: 240px; right: 0; z-index: 1030; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="text-light text-center mb-4">Admin Panel</h4>
+        <a href="/admin">🏠 Dashboard</a>
+        <a href="/admin/posbankum">📂 Posbankum</a>
+        <a href="/admin/paralegal">👥 Paralegal</a>
+        <a href="/admin/kadarkum">📘 Kadarkum</a>
+        <a href="/admin/pja">📑 PJA</a>
+        <hr class="text-light">
+        <div class="px-3 text-light">Master Wilayah</div>
+        <a href="/admin/provinsi" class="submenu">🌍 Provinsi</a>
+        <a href="/admin/kabupaten" class="submenu">🏙️ Kabupaten/Kota</a>
+        <a href="/admin/kecamatan" class="submenu">📌 Kecamatan</a>
+        <a href="/admin/kelurahan" class="submenu">🏡 Kelurahan/Desa</a>
+        <hr class="text-light">
+        <a href="/logout">🚪 Logout</a>
+    </div>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">{{ .Title }}</span>
+            <span class="text-light">👤 {{ .user }}</span>
+        </div>
+    </nav>
+    
+    <!-- Content -->
+    <div class="content mt-5 pt-4">
+        <div class="container">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">➕ Tambah Paralegal</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="/admin/paralegal/store" enctype="multipart/form-data" class="needs-validation" novalidate>
+    
+                        <!-- Nama -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nama Paralegal</label>
+                            <input type="text" name="nama" value="{{ .Nama }}" class="form-control" required>
+                            <div class="invalid-feedback">Nama wajib diisi.</div>
+                        </div>
+    
+                        <!-- Posbankum (Autocomplete) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Posbankum</label>
+                            <input type="hidden" name="posbankum_id" id="posbankum_id">
+                            <input type="text" id="posbankum_search" class="form-control {{ if .ErrorPosbankum }}is-invalid{{ end }}" placeholder="Ketik nama kelurahan/kecamatan/kabupaten..." required>
+                            <div class="invalid-feedback">
+                                {{ if .ErrorPosbankum }}
+                                    {{ .ErrorPosbankum }}
+                                {{ else }}
+                                    Posbankum wajib dipilih.
+                                {{ end }}
+                            </div>
+                        </div>
+    
+                        <!-- Dokumen -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Upload Dokumen</label>
+                            <input type="file" name="dokumen" accept="application/pdf" class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
+                            <div class="form-text text-muted">Hanya file PDF, maksimal 10MB.</div>
+                            <div class="invalid-feedback">
+                                {{ if .ErrorFile }}
+                                    {{ .ErrorFile }}
+                                {{ else }}
+                                    File PDF wajib diupload.
+                                {{ end }}
+                            </div>
+                        </div>
+    
+                        <!-- Tombol -->
+                        <div class="d-flex justify-content-end">
+                            <a href="/admin/paralegal" class="btn btn-secondary me-2">← Batal</a>
+                            <button type="submit" class="btn btn-success">💾 Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Script -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(function() {
+            // Autocomplete Posbankum
+            $("#posbankum_search").autocomplete({
+                source: function(request, response) {
+                    $.getJSON("/admin/api/posbankum/search", { term: request.term }, function(data) {
+                        response($.map(data.results, function(item) {
+                            return {
+                                label: item.kelurahan + " - " + item.kecamatan + " - " + item.kabupaten,
+                                value: item.kelurahan + " - " + item.kecamatan + " - " + item.kabupaten,
+                                id: item.id
+                            };
+                        }));
+                    });
+                },
+                select: function(event, ui) {
+                    $("#posbankum_id").val(ui.item.id);
+                    $(this).val(ui.item.label);
+                    return false;
+                },
+                minLength: 2
+            });
+
+            // Reset kalau user cuma ngetik tapi gak pilih
+            $("#posbankum_search").on("blur", function() {
+                if ($("#posbankum_id").val() === "" || $("#posbankum_id").val() === "0") {
+                    $(this).val(""); 
+                }
+            });
+
+            // Prevent submit kalau posbankum_id kosong
+            $("form").on("submit", function(e) {
+                if ($("#posbankum_id").val() === "" || $("#posbankum_id").val() === "0") {
+                    e.preventDefault();
+                    alert("Silakan pilih Posbankum dari daftar autocomplete.");
+                }
+            });
+
+            // Bootstrap validation
+            (() => {
+                'use strict'
+                const forms = document.querySelectorAll('.needs-validation')
+                Array.from(forms).forEach(form => {
+                    form.addEventListener('submit', event => {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+            })()
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik - Sistem Informasi Penyuluhan Hukum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <a href="/" class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Kembali</span>
+                </a>
+                <span class="text-lg font-bold text-blue-600">Sistem Informasi Penyuluhan Hukum</span>
+            </div>
+            <div class="space-x-4">
+                <a href="/login" class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">
+                    Login Admin
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <section id="statistik" class="py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="text-2xl md:text-4xl font-bold text-center mb-10">
+                Statistik Kami dalam Angka
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-blue-600 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9.75 9.75c0-.604.124-1.185.356-1.712m-2.57 2.138a1.687 1.687 0 01-.194-.131M5.7 7.747m.17.069a1.687 1.687 0 00-.194-.131L5.7 7.747m.17.069C3.692 8.448 3 9.735 3 11.25c0 1.287.407 2.457 1.109 3.447m.17.069l3.425-3.425M5.7 7.747A1.687 1.687 0 004.5 9c0 1.05.626 1.956 1.5 2.372m.17.069L9 15.5m.75-6.75h-.008v.008H9.75V8.75zm.75 0h-.008v.008H10.5V8.75zm.75 0h-.008v.008H11.25V8.75zm.75 0h-.008v.008H12V8.75zm.75 0h-.008v.008H12.75V8.75zm.75 0h-.008v.008H13.5V8.75zm.75 0h-.008v.008H14.25V8.75zm.75 0h-.008v.008H15V8.75zm.75 0h-.008v.008H15.75V8.75zm.75 0h-.008v.008H16.5V8.75zm.75 0h-.008v.008H17.25V8.75zm.75 0h-.008v.008H18V8.75zm.75 0h-.008v.008H18.75V8.75z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">POSBANKUM</h3>
+                    <p class="text-4xl font-bold text-blue-600">{{ .TotalPosbankumProvinsi }}</p>
+                    <p class="text-sm text-gray-500">
+                        dari total {{ .TotalKelurahanProvinsi }} Kelurahan
+                    </p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-blue-600 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 1.956-2.583 3.54-5.25 3.54a9.75 9.75 0 01-1.571-.161M12 21a9.75 9.75 0 01-5.632-1.765M12 21v-3.75m0-9v-3.75" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9c1.077 0 2.115-.157 3.102-.457m-9.204 0c-.987.3-1.925.457-3.102.457m2.062 4.145c.829 1.492 1.996 2.508 3.393 2.912" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">KADARKUM</h3>
+                    <p class="text-4xl font-bold text-blue-600">{{ .TotalKadarkumProvinsi }}</p>
+                    <p class="text-sm text-gray-500">
+                        dari total {{ .TotalKelurahanProvinsi }} Kelurahan
+                    </p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-blue-600 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.75a4.5 4.5 0 004.5-4.5v-3.75a4.5 4.5 0 00-4.5-4.5h-15a4.5 4.5 0 00-4.5 4.5v3.75a4.5 4.5 0 004.5 4.5h15z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">PJA</h3>
+                    <p class="text-4xl font-bold text-blue-600">{{ .TotalPjaProvinsi }}</p>
+                    <p class="text-sm text-gray-500">
+                        dari total {{ .TotalKelurahanProvinsi }} Kelurahan
+                    </p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="text-blue-600 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">PARALEGAL</h3>
+                    <p class="text-4xl font-bold text-blue-600">{{ .TotalParalegalProvinsi }}</p>
+                    <p class="text-sm text-gray-500">
+                        Paralegal Terdaftar
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-sm">&copy; 2025 Kementerian Hukum & HAM RI.</p>
+            <p class="text-xs mt-1">Hak cipta dilindungi undang-undang.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

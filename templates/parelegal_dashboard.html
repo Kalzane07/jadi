@@ -1,0 +1,206 @@
+<!-- templates/paralegal_dashboard.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .bg-gradient {
+            background: linear-gradient(135deg, #003366, #1a4d85);
+        }
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <img src="/static/logo.png" alt="Logo" class="h-10 w-auto">
+                    <div class="ml-4">
+                        <h1 class="text-lg font-bold text-gray-900">Sistem Informasi Paralegal</h1>
+                        <p class="text-xs text-gray-500">Kantor Wilayah Kementerian Hukum Jambi</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="ml-3 relative">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-gray-700">{{ .paralegal.Nama }}</span>
+                            <a href="/paralegal/logout" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Profile Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8 card">
+            <div class="bg-gradient p-6">
+                <div class="flex items-center">
+                    <div class="bg-white p-2 rounded-full">
+                        <i class="fas fa-user-tie text-blue-700 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-xl font-bold text-white">{{ .paralegal.Nama }}</h2>
+                        <p class="text-blue-100">Paralegal Terdaftar</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Informasi Kontak</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-gray-400 w-5"></i>
+                                <span class="ml-2 text-gray-700">{{ .paralegal.NoHP }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-gray-400 w-5"></i>
+                                <span class="ml-2 text-gray-700">{{ .paralegal.Email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 mb-1">Lokasi Tugas</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-map-marker-alt text-gray-400 w-5"></i>
+                                <span class="ml-2 text-gray-700">
+                                    {{ .paralegal.Posbankum.Kelurahan.Name }}, 
+                                    {{ .paralegal.Posbankum.Kelurahan.Kecamatan.Name }}
+                                </span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-city text-gray-400 w-5"></i>
+                                <span class="ml-2 text-gray-700">
+                                    {{ .paralegal.Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Section -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">Kegiatan Paralegal</h2>
+                    <button @click="showForm = !showForm" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition duration-300">
+                        <i class="fas fa-plus mr-2"></i>Tambah Kegiatan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Activity Form -->
+            <div x-show="showForm" x-transition class="p-6 border-b border-gray-200 bg-gray-50">
+                <form action="/paralegal/activity" method="POST" enctype="multipart/form-data">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                            <input type="date" name="tanggal" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dokumen Pendukung</label>
+                            <input type="file" name="dokumen" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kegiatan</label>
+                        <textarea name="kegiatan" rows="3" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                        <textarea name="catatan" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" @click="showForm = false" 
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Batal
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
+                            Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Activities List -->
+            <div class="p-6">
+                {{ if .paralegal.Activities }}
+                <div class="space-y-4">
+                    {{ range .paralegal.Activities }}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition duration-150">
+                        <div class="flex justify-between">
+                            <div>
+                                <h3 class="font-medium text-gray-900">{{ .Kegiatan }}</h3>
+                                <div class="mt-1 flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span>{{ .Tanggal.Format "02 January 2006" }}</span>
+                                </div>
+                                {{ if .Catatan }}
+                                <p class="mt-2 text-sm text-gray-600">{{ .Catatan }}</p>
+                                {{ end }}
+                            </div>
+                            <div class="flex space-x-2">
+                                {{ if .Dokumen }}
+                                <a href="/{{ .Dokumen }}" target="_blank" 
+                                   class="text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-file-alt"></i>
+                                </a>
+                                {{ end }}
+                                <a href="/paralegal/activity/delete/{{ .ID }}" 
+                                   class="text-red-600 hover:text-red-800"
+                                   onclick="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {{ end }}
+                </div>
+                {{ else }}
+                <div class="text-center py-8">
+                    <i class="fas fa-clipboard-list text-gray-300 text-4xl mb-3"></i>
+                    <p class="text-gray-500">Belum ada kegiatan yang dicatat</p>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                showForm: false,
+            }))
+        })
+    </script>
+</body>
+</html>

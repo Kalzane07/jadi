@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* Tampilan mobile dengan sidebar offcanvas */
+        .offcanvas-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%);
+        }
+        .offcanvas-wrapper.active {
+            transform: translateX(0);
+        }
+        .offcanvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .offcanvas-sidebar {
+            width: 240px;
+            background-color: #1f2937;
+            height: 100%;
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Tombol untuk membuka sidebar di mobile -->
+    <button id="sidebar-toggle" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-md shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+    </button>
+
+    <!-- Sidebar Mobile (Offcanvas) -->
+    <div id="offcanvas-wrapper" class="offcanvas-wrapper md:hidden">
+        <div class="offcanvas-overlay" onclick="toggleSidebar()"></div>
+        <div class="offcanvas-sidebar p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-8">
+                <h4 class="text-xl font-bold text-white">Admin Panel</h4>
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <ul class="space-y-2">
+                <li><a class="nav-link" href="/admin">🏠 Dashboard</a></li>
+                <li><a class="nav-link" href="/admin/posbankum">📂 Posbankum</a></li>
+                <li><a class="nav-link" href="/admin/paralegal">👥 Paralegal</a></li>
+                <li><a class="nav-link" href="/admin/kadarkum">📘 Kadarkum</a></li>
+                <li><a class="nav-link" href="/admin/pja">📑 PJA</a></li>
+                <li><hr class="my-4 border-gray-600"></li>
+                <li class="px-3 text-sm font-semibold text-gray-500">Master Wilayah</li>
+                <li><a class="nav-link submenu" href="/admin/provinsi">🌍 Provinsi</a></li>
+                <li><a class="nav-link submenu" href="/admin/kabupaten">🏙️ Kabupaten/Kota</a></li>
+                <li><a class="nav-link submenu" href="/admin/kecamatan">📌 Kecamatan</a></li>
+                <li><a class="nav-link submenu" href="/admin/kelurahan">🏡 Kelurahan/Desa</a></li>
+                <li><hr class="my-4 border-gray-600"></li>
+                <li><a class="nav-link" href="/logout">🚪 Logout</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sidebar Desktop -->
+    <div class="hidden md:flex flex-col w-60 h-screen fixed top-0 left-0 bg-gray-800 text-gray-400 p-4 shadow-lg z-40">
+        <h4 class="text-xl font-bold text-white mb-8">Admin Panel</h4>
+        <ul class="space-y-2">
+            <li><a class="nav-link" href="/admin">🏠 Dashboard</a></li>
+            <li><a class="nav-link" href="/admin/posbankum">📂 Posbankum</a></li>
+            <li><a class="nav-link" href="/admin/paralegal">👥 Paralegal</a></li>
+            <li><a class="nav-link" href="/admin/kadarkum">📘 Kadarkum</a></li>
+            <li><a class="nav-link" href="/admin/pja">📑 PJA</a></li>
+            <li><hr class="my-4 border-gray-600"></li>
+            <li class="px-3 text-sm font-semibold text-gray-500">Master Wilayah</li>
+            <li><a class="nav-link submenu" href="/admin/provinsi">🌍 Provinsi</a></li>
+            <li><a class="nav-link submenu" href="/admin/kabupaten">🏙️ Kabupaten/Kota</a></li>
+                <li><a class="nav-link submenu" href="/admin/kecamatan">📌 Kecamatan</a></li>
+                <li><a class="nav-link submenu" href="/admin/kelurahan">🏡 Kelurahan/Desa</a></li>
+                <li><hr class="my-4 border-gray-600"></li>
+                <li><a class="nav-link" href="/logout">🚪 Logout</a></li>
+            </ul>
+        </div>
+    
+        <!-- Main Content Area -->
+        <div class="md:ml-60 pt-16 p-4">
+            <!-- Navbar at the top for desktop, hidden on mobile since the toggle is on the side -->
+            <nav class="bg-gray-900 text-white fixed top-0 w-full z-50 md:left-60 md:w-[calc(100%-240px)]">
+                <div class="flex justify-between items-center p-4 shadow-md">
+                    <span class="text-xl font-semibold">{{ .Title }}</span>
+                    <span class="text-sm">👤 {{ .user }}</span>
+                </div>
+            </nav>
+    
+            <div class="container mx-auto">
+                <h3 class="text-2xl font-bold mb-6">Dashboard Statistik</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-blue-600 text-white p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                        <h5 class="text-lg font-medium">Posbankum</h5>
+                        <p class="text-4xl font-bold mt-2">{{ .totalPosbankum }}</p>
+                    </div>
+                    <div class="bg-green-600 text-white p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                        <h5 class="text-lg font-medium">Paralegal</h5>
+                        <p class="text-4xl font-bold mt-2">{{ .totalParalegal }}</p>
+                    </div>
+                    <div class="bg-yellow-500 text-white p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                        <h5 class="text-lg font-medium">Kadarkum</h5>
+                        <p class="text-4xl font-bold mt-2">{{ .totalKadarkum }}</p>
+                    </div>
+                    <div class="bg-red-600 text-white p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                        <h5 class="text-lg font-medium">PJA</h5>
+                        <p class="text-4xl font-bold mt-2">{{ .totalPJA }}</p>
+                    </div>
+                </div>
+    
+                <!-- Search with category filter -->
+                <form method="get" action="/admin" class="mb-8">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <select name="category" class="form-select flex-grow p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" disabled selected>Pilih jenis yang dicari...</option>
+                            <option value="posbankum" {{ if eq .SelectedCategory "posbankum" }}selected{{ end }}>Posbankum</option>
+                            <option value="paralegal" {{ if eq .SelectedCategory "paralegal" }}selected{{ end }}>Paralegal</option>
+                            <option value="kadarkum" {{ if eq .SelectedCategory "kadarkum" }}selected{{ end }}>Kadarkum</option>
+                            <option value="pja" {{ if eq .SelectedCategory "pja" }}selected{{ end }}>PJA</option>
+                        </select>
+                        <input type="text" name="q" value="{{.Query}}" placeholder="masukan Kabupaten/Kecamatan/Kelurahan yang dicari..." class="form-input flex-grow p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="bg-blue-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-blue-700 transition duration-300">Cari</button>
+                    </div>
+                </form>
+    
+                <!-- Conditional tables based on search results -->
+                <!-- Data Posbankum -->
+                {{ if and .Query (eq .SelectedCategory "posbankum") }}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h5 class="text-xl font-semibold mb-4">Hasil Pencarian: Posbankum</h5>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-800 text-gray-200">
+                                    <th class="py-3 px-4 rounded-tl-lg">No</th>
+                                    <th class="py-3 px-4">Kelurahan/Desa</th>
+                                    <th class="py-3 px-4">Kecamatan</th>
+                                    <th class="py-3 px-4">Kabupaten</th>
+                                    <th class="py-3 px-4">Dokumen</th>
+                                    <th class="py-3 px-4 rounded-tr-lg">Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{ range $i, $p := .SearchResults }}
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-150">
+                                    <td class="py-3 px-4">{{ add $i 1 }}</td>
+                                    <td class="py-3 px-4">{{ $p.Kelurahan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
+                                    <td class="py-3 px-4">
+                                        {{ if $p.Dokumen }}
+                                        <a href="/{{ $p.Dokumen }}" target="_blank" class="text-blue-600 hover:underline">📄 Lihat PDF</a>
+                                        {{ else }}
+                                        <span class="text-gray-400">Belum ada</span>
+                                        {{ end }}
+                                    </td>
+                                    <td class="py-3 px-4">{{ $p.Catatan }}</td>
+                                </tr>
+                                {{ else }}
+                                <tr><td colspan="6" class="text-center py-4 text-gray-500">Tidak ada data Posbankum yang cocok.</td></tr>
+                                {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{ end }}
+    
+                <!-- Data Paralegal -->
+                {{ if and .Query (eq .SelectedCategory "paralegal") }}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h5 class="text-xl font-semibold mb-4">Hasil Pencarian: Paralegal</h5>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-800 text-gray-200">
+                                    <th class="py-3 px-4 rounded-tl-lg">No</th>
+                                    <th class="py-3 px-4">Kelurahan/Desa</th>
+                                    <th class="py-3 px-4">Kecamatan</th>
+                                    <th class="py-3 px-4">Kabupaten</th>
+                                    <th class="py-3 px-4">Dokumen</th>
+                                    <th class="py-3 px-4 rounded-tr-lg">Nama</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{ range $i, $p := .SearchResults }}
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-150">
+                                    <td class="py-3 px-4">{{ add $i 1 }}</td>
+                                    <td class="py-3 px-4">{{ $p.Posbankum.Kelurahan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $p.Posbankum.Kelurahan.Kecamatan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $p.Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
+                                    <td class="py-3 px-4">
+                                        {{ if $p.Dokumen }}
+                                        <a href="/{{ $p.Dokumen }}" target="_blank" class="text-blue-600 hover:underline">📄 Lihat PDF</a>
+                                        {{ else }}
+                                        <span class="text-gray-400">Belum ada</span>
+                                        {{ end }}
+                                    </td>
+                                    <td class="py-3 px-4">{{ $p.Nama }}</td>
+                                </tr>
+                                {{ else }}
+                                <tr><td colspan="6" class="text-center py-4 text-gray-500">Tidak ada data Paralegal yang cocok.</td></tr>
+                                {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{ end }}
+    
+                <!-- Data PJA -->
+                {{ if and .Query (eq .SelectedCategory "pja") }}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h5 class="text-xl font-semibold mb-4">Hasil Pencarian: PJA</h5>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-800 text-gray-200">
+                                    <th class="py-3 px-4 rounded-tl-lg">No</th>
+                                    <th class="py-3 px-4">Kelurahan/Desa</th>
+                                    <th class="py-3 px-4">Kecamatan</th>
+                                    <th class="py-3 px-4">Kabupaten</th>
+                                    <th class="py-3 px-4">Dokumen</th>
+                                    <th class="py-3 px-4 rounded-tr-lg">Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{ range $i, $p := .SearchResults }}
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-150">
+                                    <td class="py-3 px-4">{{ add $i 1 }}</td>
+                                    <td class="py-3 px-4">{{ $p.Kelurahan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
+                                    <td class="py-3 px-4">
+                                        {{ if $p.Dokumen }}
+                                        <a href="/{{ $p.Dokumen }}" target="_blank" class="text-blue-600 hover:underline">📄 Lihat PDF</a>
+                                        {{ else }}
+                                        <span class="text-gray-400">Belum ada</span>
+                                        {{ end }}
+                                    </td>
+                                    <td class="py-3 px-4">{{ $p.Catatan }}</td>
+                                </tr>
+                                {{ else }}
+                                <tr><td colspan="6" class="text-center py-4 text-gray-500">Tidak ada data PJA yang cocok.</td></tr>
+                                {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{ end }}
+    
+                <!-- Data Kadarkum -->
+                {{ if and .Query (eq .SelectedCategory "kadarkum") }}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h5 class="text-xl font-semibold mb-4">Hasil Pencarian: Kadarkum</h5>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-800 text-gray-200">
+                                    <th class="py-3 px-4 rounded-tl-lg">No</th>
+                                    <th class="py-3 px-4">Kelurahan/Desa</th>
+                                    <th class="py-3 px-4">Kecamatan</th>
+                                    <th class="py-3 px-4">Kabupaten</th>
+                                    <th class="py-3 px-4">Dokumen</th>
+                                    <th class="py-3 px-4 rounded-tr-lg">Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{ range $i, $k := .SearchResults }}
+                                <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-150">
+                                    <td class="py-3 px-4">{{ add $i 1 }}</td>
+                                    <td class="py-3 px-4">{{ $k.Kelurahan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $k.Kelurahan.Kecamatan.Name }}</td>
+                                    <td class="py-3 px-4">{{ $k.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
+                                    <td class="py-3 px-4">
+                                        {{ if $k.Dokumen }}
+                                        <a href="/{{ $k.Dokumen }}" target="_blank" class="text-blue-600 hover:underline">📄 Lihat PDF</a>
+                                        {{ else }}
+                                        <span class="text-gray-400">Belum ada</span>
+                                        {{ end }}
+                                    </td>
+                                    <td class="py-3 px-4">{{ $k.Catatan }}</td>
+                                </tr>
+                                {{ else }}
+                                <tr><td colspan="6" class="text-center py-4 text-gray-500">Tidak ada data Kadarkum yang cocok.</td></tr>
+                                {{ end }}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+    
+        <script>
+            // Fungsi untuk mengontrol sidebar offcanvas
+            function toggleSidebar() {
+                const sidebar = document.getElementById('offcanvas-wrapper');
+                sidebar.classList.toggle('active');
+            }
+    
+            // Menambahkan event listener ke tombol toggle sidebar setelah DOM selesai dimuat
+            document.addEventListener('DOMContentLoaded', function() {
+                const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+                if (sidebarToggleBtn) {
+                    sidebarToggleBtn.addEventListener('click', toggleSidebar);
+                }
+    
+                // Menambahkan gaya untuk link navigasi
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => {
+                    link.classList.add('block', 'py-2', 'px-4', 'rounded-md', 'text-gray-400', 'hover:bg-gray-700', 'hover:text-white', 'transition-colors', 'duration-200');
+                });
+    
+                const submenuLinks = document.querySelectorAll('.submenu');
+                submenuLinks.forEach(link => {
+                    link.classList.add('pl-8', 'py-1', 'text-sm');
+                });
+            });
+        </script>
+    </body>
+    </html>
