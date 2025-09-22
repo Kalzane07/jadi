@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -96,8 +97,21 @@ func toJSON(v interface{}) template.JS {
 }
 
 func main() {
+	// ============ SET GIN MODE ============
+	mode := os.Getenv("GIN_MODE")
+	if mode == "" {
+		gin.SetMode(gin.ReleaseMode) // default ke release
+	} else {
+		gin.SetMode(mode)
+	}
+
 	// init Gin
 	r := gin.Default()
+
+	// proxy fix (biar gak warning)
+	if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
+		log.Fatal("❌ Gagal set trusted proxies:", err)
+	}
 
 	// load HTML templates + register functions
 	funcMap := template.FuncMap{
@@ -112,7 +126,7 @@ func main() {
 		"isSlice":          isSlice,
 		"hasPrefix":        strings.HasPrefix,
 		"hasSuffix":        strings.HasSuffix,
-		"toJSON":           toJSON, // ✅ tambahkan ini
+		"toJSON":           toJSON,
 	}
 	r.SetFuncMap(funcMap)
 	r.LoadHTMLGlob("templates/*")
