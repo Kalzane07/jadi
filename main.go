@@ -3,16 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
-	"log"
-	"os"
-	"reflect"
-	"strings"
-	"time"
-
 	"go-admin/config"
 	"go-admin/controllers"
 	"go-admin/routes"
+	"html/template"
+	"log"
+	"reflect"
+	"strings"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -97,18 +95,19 @@ func toJSON(v interface{}) template.JS {
 }
 
 func main() {
-	// ============ SET GIN MODE ============
-	mode := os.Getenv("GIN_MODE")
-	if mode == "" {
-		gin.SetMode(gin.ReleaseMode) // default ke release
-	} else {
-		gin.SetMode(mode)
-	}
+	// ============ SET GIN MODE KE RELEASE ============
+	// Ini akan menghilangkan pesan peringatan tentang mode debug.
+	gin.SetMode(gin.ReleaseMode)
 
-	// init Gin
-	r := gin.Default()
+	// ============ PERUBAHAN UTAMA ============
+	// Gunakan gin.New() untuk membuat instance Gin tanpa middleware default (Logger).
+	r := gin.New()
 
-	// proxy fix (biar gak warning)
+	// Tambahkan middleware Recovery secara manual.
+	// Ini penting agar server tidak crash jika terjadi panic.
+	r.Use(gin.Recovery())
+
+	// Atasi peringatan proxy dengan menetapkan proxy yang dipercaya.
 	if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		log.Fatal("❌ Gagal set trusted proxies:", err)
 	}
@@ -153,6 +152,7 @@ func main() {
 	r.Static("/uploads", "./uploads")
 
 	// run server di port 8080
+	fmt.Println("✅ Server berjalan di http://localhost:8080")
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("❌ Gagal menjalankan server:", err)
 	}
