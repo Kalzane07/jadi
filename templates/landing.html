@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="creator" content="Fauzi Siombing">
+    <meta name="author" content="Fauzi Siombing">
     <title>JADI - Jambi Database Informasi Pembinaan Hukum</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 
+         * JADI - Jambi Database Informasi Pembinaan Hukum
+         * Designed & developed by Fauzi Siombing
+         */
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
         
         :root {
@@ -579,6 +585,7 @@
         </div>
         <div class="container mx-auto px-6 mt-8 pt-6 border-t border-blue-800 text-center">
             <p class="text-xs text-blue-400">&copy; 2025 JADI. Hak Cipta Dilindungi Undang-Undang.</p>
+            <p class="text-xs text-blue-500 opacity-50 mt-1">Dikembangkan oleh FS</p>
         </div>
     </footer>
 
@@ -672,6 +679,37 @@
                 }, 5000);
             });
         }
+
+        // Easter egg - ketik "fauzi" untuk melihat tanda pembuat
+        let keys = [];
+        const secretCode = 'fauzi';
+
+        document.addEventListener('keydown', (e) => {
+            keys.push(e.key);
+            keys = keys.slice(-secretCode.length);
+            
+            if (keys.join('') === secretCode) {
+                const signature = document.createElement('div');
+                signature.style.position = 'fixed';
+                signature.style.bottom = '10px';
+                signature.style.right = '10px';
+                signature.style.padding = '5px 10px';
+                signature.style.backgroundColor = 'rgba(0, 51, 102, 0.7)';
+                signature.style.color = '#FFD700';
+                signature.style.borderRadius = '4px';
+                signature.style.fontSize = '12px';
+                signature.style.zIndex = '9999';
+                signature.textContent = 'Created by Fauzi Siombing';
+                document.body.appendChild(signature);
+                
+                setTimeout(() => {
+                    signature.style.opacity = '0';
+                    signature.style.transition = 'opacity 1s';
+                    setTimeout(() => signature.remove(), 1000);
+                }, 3000);
+            }
+        });
     </script>
+    <!-- Designed & developed with ❤️ by Fauzi Siombing -->
 </body>
 </html>
