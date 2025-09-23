@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 23, 2025 at 02:35 AM
+-- Generation Time: Sep 23, 2025 at 06:33 PM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.16
 
@@ -62,10 +62,11 @@ INSERT INTO `kabupatens` (`id`, `code`, `provinsi_id`, `name`, `created_at`, `up
 CREATE TABLE `kadarkums` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dokumen` longblob,
   `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL
+  `updated_at` datetime(3) DEFAULT NULL,
+  `content_type` longtext COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1852,9 +1853,10 @@ CREATE TABLE `paralegals` (
   `id` bigint UNSIGNED NOT NULL,
   `posbankum_id` bigint UNSIGNED NOT NULL,
   `nama` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `dokumen` longblob,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL
+  `updated_at` datetime(3) DEFAULT NULL,
+  `content_type` longtext COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1884,10 +1886,11 @@ CREATE TABLE `paralegal_kegiatans` (
 CREATE TABLE `pjas` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` text NOT NULL,
+  `dokumen` longblob,
   `catatan` text,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL
+  `updated_at` datetime(3) DEFAULT NULL,
+  `content_type` longtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -1899,10 +1902,11 @@ CREATE TABLE `pjas` (
 CREATE TABLE `posbankums` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dokumen` longblob,
   `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL
+  `updated_at` datetime(3) DEFAULT NULL,
+  `content_type` longtext COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -2039,7 +2043,7 @@ ALTER TABLE `kabupatens`
 -- AUTO_INCREMENT for table `kadarkums`
 --
 ALTER TABLE `kadarkums`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- AUTO_INCREMENT for table `kecamatans`
@@ -2057,7 +2061,7 @@ ALTER TABLE `kelurahans`
 -- AUTO_INCREMENT for table `paralegals`
 --
 ALTER TABLE `paralegals`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `paralegal_kegiatans`
@@ -2069,13 +2073,13 @@ ALTER TABLE `paralegal_kegiatans`
 -- AUTO_INCREMENT for table `pjas`
 --
 ALTER TABLE `pjas`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `posbankums`
 --
 ALTER TABLE `posbankums`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=198;
 
 --
 -- AUTO_INCREMENT for table `provinsis`
@@ -2087,7 +2091,7 @@ ALTER TABLE `provinsis`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
