@@ -24,6 +24,14 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 		// ================= DASHBOARD =================
 		admin.GET("/", controllers.AdminPanel)
 
+		// ================= USER CRUD =================
+		admin.GET("/users", controllers.UserIndex)
+		admin.GET("/users/create", controllers.UserCreateForm)
+		admin.POST("/users/store", controllers.UserCreate)
+		admin.GET("/users/edit/:id", controllers.UserEditForm)
+		admin.POST("/users/update/:id", controllers.UserUpdate)
+		admin.GET("/users/delete/:id", controllers.UserDelete)
+
 		// ================= POSBANKUM CRUD =================
 		admin.GET("/posbankum", controllers.PosbankumIndex)
 		admin.GET("/posbankum/create", controllers.PosbankumCreate)
