@@ -2,9 +2,8 @@ package config
 
 import (
 	"fmt"
-	"log"
-
 	"go-admin/models"
+	"log"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

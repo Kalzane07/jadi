@@ -18,18 +18,8 @@ import (
 )
 
 // ============ helper functions untuk template ============
-
-// tambah
-func add(x, y int) int {
-	return x + y
-}
-
-// kurang
-func sub(x, y int) int {
-	return x - y
-}
-
-// bikin slice [0..count-1]
+func add(x, y int) int { return x + y }
+func sub(x, y int) int { return x - y }
 func iter(count int) []int {
 	s := make([]int, count)
 	for i := 0; i < count; i++ {
@@ -37,29 +27,19 @@ func iter(count int) []int {
 	}
 	return s
 }
-
-// helper untuk return waktu sekarang (buat {{ now.Year }} di template)
-func now() time.Time {
-	return time.Now()
-}
-
-// helper untuk hitung persentase (Tercapai / Total)
+func now() time.Time { return time.Now() }
 func calcPersen(tercapai, total int) float64 {
 	if total == 0 {
 		return 0
 	}
 	return (float64(tercapai) / float64(total)) * 100
 }
-
-// helper untuk format total string "a / b"
 func calcTotal(a, b int) string {
 	if b == 0 {
 		return "0 / 0"
 	}
 	return fmt.Sprintf("%d / %d", a, b)
 }
-
-// helper hitung total Tercapai dari slice controllers.KecamatanSummary
 func totalTercapai(data []controllers.KecamatanSummary) int {
 	total := 0
 	for _, v := range data {
@@ -67,8 +47,6 @@ func totalTercapai(data []controllers.KecamatanSummary) int {
 	}
 	return total
 }
-
-// helper hitung total keseluruhan dari slice controllers.KecamatanSummary
 func totalKeseluruhan(data []controllers.KecamatanSummary) int {
 	total := 0
 	for _, v := range data {
@@ -76,16 +54,12 @@ func totalKeseluruhan(data []controllers.KecamatanSummary) int {
 	}
 	return total
 }
-
-// helper cek apakah value slice
 func isSlice(v interface{}) bool {
 	if v == nil {
 		return false
 	}
 	return reflect.TypeOf(v).Kind() == reflect.Slice
 }
-
-// helper konversi ke JSON (buat {{ .Var | toJSON }} di template)
 func toJSON(v interface{}) template.JS {
 	a, err := json.Marshal(v)
 	if err != nil {
@@ -96,18 +70,12 @@ func toJSON(v interface{}) template.JS {
 
 func main() {
 	// ============ SET GIN MODE KE RELEASE ============
-	// Ini akan menghilangkan pesan peringatan tentang mode debug.
 	gin.SetMode(gin.ReleaseMode)
 
-	// ============ PERUBAHAN UTAMA ============
-	// Gunakan gin.New() untuk membuat instance Gin tanpa middleware default (Logger).
 	r := gin.New()
-
-	// Tambahkan middleware Recovery secara manual.
-	// Ini penting agar server tidak crash jika terjadi panic.
+	//r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	// Atasi peringatan proxy dengan menetapkan proxy yang dipercaya.
 	if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		log.Fatal("❌ Gagal set trusted proxies:", err)
 	}
@@ -131,10 +99,10 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 
 	// session setup
-	store := cookie.NewStore([]byte("super-secret-key")) // ganti dengan key yang lebih aman
+	store := cookie.NewStore([]byte("super-secret-key"))
 	store.Options(sessions.Options{
 		Path:     "/",
-		MaxAge:   3600 * 8, // 8 jam
+		MaxAge:   3600 * 8,
 		HttpOnly: true,
 	})
 	r.Use(sessions.Sessions("mysession", store))
@@ -143,16 +111,18 @@ func main() {
 	config.ConnectDB()
 
 	// ============ SETUP ROUTES ============
-	routes.SetupRoutes(r)
+	jadi := r.Group("/jadi")
+	{
+		// route app
+		routes.SetupRoutes(jadi)
 
-	// serve static files (logo, background, css/js custom)
-	r.Static("/static", "./static")
-
-	// serve file uploads (PDF, gambar, dll.)
-	r.Static("/uploads", "./uploads")
+		// serve static files & uploads di bawah /jadi
+		jadi.Static("/static", "./static")
+		jadi.Static("/uploads", "./uploads")
+	}
 
 	// run server di port 8080
-	fmt.Println("✅ Server berjalan di http://localhost:8080")
+	fmt.Println("✅ Server berjalan di http://localhost:8080/jadi")
 	if err := r.Run(":8080"); err != nil {
 		log.Fatal("❌ Gagal menjalankan server:", err)
 	}

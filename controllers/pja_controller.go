@@ -138,7 +138,7 @@ func PJAStore(c *gin.Context) {
 	}
 
 	config.DB.Create(&pja)
-	c.Redirect(http.StatusFound, "/admin/pja")
+	c.Redirect(http.StatusFound, "/jadi/admin/pja")
 }
 
 // ================== EDIT FORM ==================
@@ -237,7 +237,7 @@ func PJAUpdate(c *gin.Context) {
 	}
 
 	config.DB.Save(&pja)
-	c.Redirect(http.StatusFound, "/admin/pja")
+	c.Redirect(http.StatusFound, "/jadi/admin/pja")
 }
 
 // ================== DELETE ==================
@@ -258,7 +258,7 @@ func PJADelete(c *gin.Context) {
 	// hapus record
 	config.DB.Delete(&pja)
 
-	c.Redirect(http.StatusFound, "/admin/pja")
+	c.Redirect(http.StatusFound, "/jadi/admin/pja")
 }
 
 // ================== API: Autocomplete Kelurahan ==================

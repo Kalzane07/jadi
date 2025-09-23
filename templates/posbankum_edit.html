@@ -35,19 +35,20 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <h4 class="text-light text-center mb-4">Admin Panel</h4>
-        <a href="/admin">🏠 Dashboard</a>
-        <a href="/admin/posbankum">📂 Posbankum</a>
-        <a href="/admin/paralegal">👥 Paralegal</a>
-        <a href="/admin/kadarkum">📘 Kadarkum</a>
-        <a href="/admin/pja">📑 PJA</a>
+        <a href="/jadi/admin">🏠 Dashboard</a>
+        <a href="/jadi/admin/posbankum">📂 Posbankum</a>
+        <a href="/jadi/admin/paralegal">👥 Paralegal</a>
+        <a href="/jadi/admin/kadarkum">📘 Kadarkum</a>
+        <a href="/jadi/admin/pja">📑 PJA</a>
         <hr class="text-light">
         <div class="px-3 text-light">Master Wilayah</div>
-        <a href="/admin/provinsi" class="submenu">🌍 Provinsi</a>
-        <a href="/admin/kabupaten" class="submenu">🏙️ Kabupaten/Kota</a>
-        <a href="/admin/kecamatan" class="submenu">📌 Kecamatan</a>
-        <a href="/admin/kelurahan" class="submenu">🏡 Kelurahan/Desa</a>
+        <a href="/jadi/admin/users" class="submenu">👤 Users</a>
+        <a href="/jadi/admin/provinsi" class="submenu">🌍 Provinsi</a>
+        <a href="/jadi/admin/kabupaten" class="submenu">🏙️ Kabupaten/Kota</a>
+        <a href="/jadi/admin/kecamatan" class="submenu">📌 Kecamatan</a>
+        <a href="/jadi/admin/kelurahan" class="submenu">🏡 Kelurahan/Desa</a>
         <hr class="text-light">
-        <a href="/logout">🚪 Logout</a>
+        <a href="/jadi/logout">🚪 Logout</a>
     </div>
 
     <!-- Navbar -->
@@ -66,7 +67,7 @@
                     <h5 class="mb-0">✏️ Edit Posbankum</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="/admin/posbankum/update/{{ .Posbankum.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <form method="POST" action="/jadi/admin/posbankum/update/{{ .Posbankum.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
 
                         <!-- Kelurahan/Desa (read-only) -->
                         <div class="mb-3">
@@ -106,7 +107,7 @@
 
                         <!-- Tombol -->
                         <div class="d-flex justify-content-end">
-                            <a href="/admin/posbankum" class="btn btn-secondary me-2">← Batal</a>
+                            <a href="/jadi/admin/posbankum" class="btn btn-secondary me-2">← Batal</a>
                             <button type="submit" class="btn btn-success">💾 Update</button>
                         </div>
                     </form>

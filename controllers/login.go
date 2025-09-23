@@ -66,12 +66,13 @@ func DoLogin(c *gin.Context) {
 	session.Save()
 
 	// redirect sesuai role
-	if user.Role == "admin" {
-		c.Redirect(http.StatusFound, "/admin")
-	} else if user.Role == "user" {
-		c.Redirect(http.StatusFound, "/user")
-	} else {
-		c.Redirect(http.StatusFound, "/login")
+	switch user.Role {
+	case "admin":
+		c.Redirect(http.StatusFound, "/jadi/admin")
+	case "user":
+		c.Redirect(http.StatusFound, "/jadi/user")
+	default:
+		c.Redirect(http.StatusFound, "/jadi/login")
 	}
 }
 
@@ -80,7 +81,7 @@ func Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Clear()
 	session.Save()
-	c.Redirect(http.StatusFound, "/login")
+	c.Redirect(http.StatusFound, "/jadi/login")
 }
 
 // Middleware cek login (apapun role-nya)
@@ -89,7 +90,7 @@ func AuthRequired() gin.HandlerFunc {
 		session := sessions.Default(c)
 		user := session.Get("user")
 		if user == nil {
-			c.Redirect(http.StatusFound, "/login")
+			c.Redirect(http.StatusFound, "/jadi/login")
 			c.Abort()
 			return
 		}
@@ -104,7 +105,7 @@ func RoleRequired(roles ...string) gin.HandlerFunc {
 		role := session.Get("role")
 
 		if role == nil {
-			c.Redirect(http.StatusFound, "/login")
+			c.Redirect(http.StatusFound, "/jadi/login")
 			c.Abort()
 			return
 		}
