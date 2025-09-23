@@ -309,14 +309,15 @@
                                         {{ range $kel := $kec.Kelurahans }}
                                         <li x-show="!searchTerm || $el.textContent.toLowerCase().includes(searchTerm.toLowerCase())" class="flex justify-between items-center border-b border-gray-200 dark:border-slate-700 py-1.5">
                                             <span class="break-words font-light">{{ $kel.NamaKelurahan }}</span>
-<span>
-    {{/* FIX: Gunakan helper function untuk link aman */}}
-    {{ if $kel.Dokumen }}
-        {{ $kel.Dokumen | renderDokumenLinks }}
-    {{ else }}
-        <span class="text-[10px] font-medium bg-gray-300 ...">Belum ada</span>
-    {{ end }}
-</span>
+                                            <span>
+                                                {{ if $kel.AdaDokumen }}
+                                                    {{ range $id := $kel.Dokumen }}
+                                                        <a href="/jadi/dokumen/posbankum/{{ $id }}" target="_blank" class="text-[10px] font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 px-2 py-0.5 rounded hover:underline">📄 Dokumen</a>
+                                                    {{ end }}
+                                                {{ else }}
+                                                    <span class="text-[10px] font-medium bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded">Belum ada</span>
+                                                {{ end }}
+                                            </span>
                                         </li>
                                         {{ end }}
                                     </ul>
@@ -388,14 +389,15 @@
                                         {{ range $kel := $kec.Kelurahans }}
                                         <li x-show="!searchTerm || $el.textContent.toLowerCase().includes(searchTerm.toLowerCase())" class="flex justify-between items-center border-b border-gray-200 dark:border-slate-700 py-1.5">
                                             <span class="break-words font-light">{{ $kel.NamaKelurahan }}</span>
-<span>
-    {{/* FIX: Gunakan helper function untuk link aman */}}
-    {{ if $kel.Dokumen }}
-        {{ $kel.Dokumen | renderDokumenLinks }}
-    {{ else }}
-        <span class="text-[10px] font-medium bg-gray-300 ...">Belum ada</span>
-    {{ end }}
-</span>
+                                            <span>
+                                                {{ if $kel.AdaDokumen }}
+                                                    {{ range $id := $kel.Dokumen }}
+                                                        <a href="/jadi/dokumen/kadarkum/{{ $id }}" target="_blank" class="text-[10px] font-medium bg-accent-100 dark:bg-accent-900/30 text-accent-800 dark:text-accent-200 px-2 py-0.5 rounded hover:underline">📄 Dokumen</a>
+                                                    {{ end }}
+                                                {{ else }}
+                                                    <span class="text-[10px] font-medium bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded">Belum ada</span>
+                                                {{ end }}
+                                            </span>
                                         </li>
                                         {{ end }}
                                     </ul>
@@ -467,14 +469,15 @@
                                         {{ range $kel := $kec.Kelurahans }}
                                         <li x-show="!searchTerm || $el.textContent.toLowerCase().includes(searchTerm.toLowerCase())" class="flex justify-between items-center border-b border-gray-200 dark:border-slate-700 py-1.5">
                                             <span class="break-words font-light">{{ $kel.NamaKelurahan }}</span>
-<span>
-    {{/* FIX: Gunakan helper function untuk link aman */}}
-    {{ if $kel.Dokumen }}
-        {{ $kel.Dokumen | renderDokumenLinks }}
-    {{ else }}
-        <span class="text-[10px] font-medium bg-gray-300 ...">Belum ada</span>
-    {{ end }}
-</span>
+                                            <span>
+                                                {{ if $kel.AdaDokumen }}
+                                                    {{ range $id := $kel.Dokumen }}
+                                                        <a href="/jadi/dokumen/pja/{{ $id }}" target="_blank" class="text-[10px] font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-2 py-0.5 rounded hover:underline">📄 Dokumen</a>
+                                                    {{ end }}
+                                                {{ else }}
+                                                    <span class="text-[10px] font-medium bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded">Belum ada</span>
+                                                {{ end }}
+                                            </span>
                                         </li>
                                         {{ end }}
                                     </ul>
@@ -541,7 +544,9 @@
                                     </button>
                                     <ul x-show="open" x-collapse id="kec-paralegal-{{ $j }}" class="pl-4 mt-1 space-y-2 text-xs">
                                         {{ range $kel := $kec.Kelurahans }}
-                                        <li x-show="!searchTerm || $el.textContent.toLowerCase().includes(searchTerm.toLowerCase())" class="border-b border-gray-200 dark:border-slate-700 py-1.5">
+                                        <li x-show="!searchTerm || $el.textContent.toLowerCase().includes(searchTerm.toLowerCase())" 
+                                            class="border-b border-gray-200 dark:border-slate-700 py-1.5">
+                                            
                                             <div class="font-semibold">{{ $kel.NamaKelurahan }}</div>
                                             <ul class="pl-3 mt-1 space-y-1">
                                                 {{ if $kel.Paralegals }}
@@ -553,10 +558,13 @@
                                                             </div>
                                                             <span>{{ $p.Nama }}</span>
                                                         </div>
-{{/* FIX: Gunakan helper function untuk link aman */}}
-{{ if $p.Dokumen }}
-    {{ $p.Dokumen | renderDokumenLinks }}
-{{ end }}
+                                                        <!-- Link dokumen -->
+                                                        <a href="/jadi/dokumen/paralegal/{{ $p.DokumenID }}" 
+                                                           target="_blank" 
+                                                           class="text-[10px] font-medium bg-primary-100 dark:bg-primary-900/30 
+                                                                  text-primary-800 dark:text-primary-200 px-2 py-0.5 rounded hover:underline">
+                                                           📄 Buka Dokumen
+                                                        </a>
                                                     </li>
                                                     {{ end }}
                                                 {{ else }}
@@ -578,7 +586,7 @@
 
         <!-- Footer -->
         <footer class="mt-8 text-center text-xs text-white/70 dark:text-gray-400">
-            <p>© {{ .Year }} Kantor Wilayah Kementerian Hukum dan HAM {{ .Provinsi }}</p>
+            <p>© {{ .Tahun }} Kantor Wilayah Kementerian Hukum dan HAM {{ .Provinsi }}</p>
             <p class="mt-1">Dikembangkan oleh Tim IT Kanwil Kemenkumham {{ .Provinsi }}</p>
         </footer>
     </main>

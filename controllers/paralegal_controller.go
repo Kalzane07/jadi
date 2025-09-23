@@ -1,14 +1,8 @@
 package controllers
 
 import (
-	"fmt"
-	"math/rand"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
-	"time"
 
 	"go-admin/config"
 	"go-admin/models"
@@ -75,92 +69,56 @@ func ParalegalCreate(c *gin.Context) {
 	})
 }
 
-// ================== API SEARCH POSBANKUM ==================
-func PosbankumSearch(c *gin.Context) {
-	term := c.Query("term")
-
-	var posbankums []struct {
-		ID        uint   `json:"id"`
-		Text      string `json:"text"`
-		Kelurahan string `json:"kelurahan"`
-		Kecamatan string `json:"kecamatan"`
-		Kabupaten string `json:"kabupaten"`
-	}
-
-	query := config.DB.Table("posbankums").
-		Select(`
-			posbankums.id,
-			CONCAT(kelurahans.name, " - ", kecamatans.name, " - ", kabupatens.name) as text,
-			kelurahans.name as kelurahan,
-			kecamatans.name as kecamatan,
-			kabupatens.name as kabupaten`).
-		Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").
-		Joins("JOIN kecamatans ON kecamatans.id = kelurahans.kecamatan_id").
-		Joins("JOIN kabupatens ON kabupatens.id = kecamatans.kabupaten_id")
-
-	if term != "" {
-		query = query.Where("kelurahans.name LIKE ? OR kecamatans.name LIKE ? OR kabupatens.name LIKE ?",
-			"%"+term+"%", "%"+term+"%", "%"+term+"%")
-	}
-
-	query.Limit(20).Scan(&posbankums)
-
-	c.JSON(http.StatusOK, gin.H{
-		"results": posbankums,
-	})
-}
-
 // ================== STORE ==================
 func ParalegalStore(c *gin.Context) {
 	posbankumID, _ := strconv.Atoi(c.PostForm("posbankum_id"))
 	nama := c.PostForm("nama")
 
-	var dokumenPath string
-
 	file, err := c.FormFile("dokumen")
-	if err == nil {
-		if file.Size > 10*1024*1024 {
-			c.HTML(http.StatusOK, "paralegal_create.html", gin.H{
-				"Title":     "Tambah Paralegal",
-				"ErrorFile": "❌ Ukuran file maksimal 10MB",
-				"Nama":      nama,
-			})
-			return
-		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "paralegal_create.html", gin.H{
-				"Title":     "Tambah Paralegal",
-				"ErrorFile": "❌ File harus berupa PDF",
-				"Nama":      nama,
-			})
-			return
-		}
-
-		uploadPath := "uploads/paralegal"
-		os.MkdirAll(uploadPath, os.ModePerm)
-
-		ext := filepath.Ext(file.Filename)
-		newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
-		fullPath := filepath.Join(uploadPath, newName)
-
-		if err := c.SaveUploadedFile(file, fullPath); err != nil {
-			c.HTML(http.StatusOK, "paralegal_create.html", gin.H{
-				"Title":     "Tambah Paralegal",
-				"ErrorFile": "❌ Gagal upload file",
-				"Nama":      nama,
-			})
-			return
-		}
-		dokumenPath = strings.ReplaceAll(fullPath, "\\", "/")
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "paralegal_create.html", gin.H{
+			"Title":     "Tambah Paralegal",
+			"ErrorFile": "❌ Dokumen wajib diupload",
+			"Nama":      nama,
+		})
+		return
 	}
+
+	if file.Size > 10*1024*1024 {
+		c.HTML(http.StatusBadRequest, "paralegal_create.html", gin.H{
+			"Title":     "Tambah Paralegal",
+			"ErrorFile": "❌ Ukuran file maksimal 10MB",
+			"Nama":      nama,
+		})
+		return
+	}
+
+	if file.Header.Get("Content-Type") != "application/pdf" {
+		c.HTML(http.StatusBadRequest, "paralegal_create.html", gin.H{
+			"Title":     "Tambah Paralegal",
+			"ErrorFile": "❌ File harus berupa PDF",
+			"Nama":      nama,
+		})
+		return
+	}
+
+	f, _ := file.Open()
+	defer f.Close()
+	fileBytes := make([]byte, file.Size)
+	f.Read(fileBytes)
 
 	paralegal := models.Paralegal{
 		PosbankumID: uint(posbankumID),
 		Nama:        nama,
-		Dokumen:     dokumenPath,
+		Dokumen:     fileBytes,
+		ContentType: file.Header.Get("Content-Type"),
 	}
 
-	config.DB.Create(&paralegal)
+	if err := config.DB.Create(&paralegal).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Gagal simpan data")
+		return
+	}
+
 	c.Redirect(http.StatusFound, "/jadi/admin/paralegal")
 }
 
@@ -208,15 +166,16 @@ func ParalegalUpdate(c *gin.Context) {
 	file, err := c.FormFile("dokumen")
 	if err == nil {
 		if file.Size > 10*1024*1024 {
-			c.HTML(http.StatusOK, "paralegal_edit.html", gin.H{
+			c.HTML(http.StatusBadRequest, "paralegal_edit.html", gin.H{
 				"Title":     "Edit Paralegal",
 				"Paralegal": paralegal,
 				"ErrorFile": "❌ Ukuran file maksimal 10MB",
 			})
 			return
 		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "paralegal_edit.html", gin.H{
+
+		if file.Header.Get("Content-Type") != "application/pdf" {
+			c.HTML(http.StatusBadRequest, "paralegal_edit.html", gin.H{
 				"Title":     "Edit Paralegal",
 				"Paralegal": paralegal,
 				"ErrorFile": "❌ File harus berupa PDF",
@@ -224,31 +183,20 @@ func ParalegalUpdate(c *gin.Context) {
 			return
 		}
 
-		uploadPath := "uploads/paralegal"
-		os.MkdirAll(uploadPath, os.ModePerm)
+		f, _ := file.Open()
+		defer f.Close()
+		fileBytes := make([]byte, file.Size)
+		f.Read(fileBytes)
 
-		ext := filepath.Ext(file.Filename)
-		newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
-		newPath := filepath.Join(uploadPath, newName)
-
-		if err := c.SaveUploadedFile(file, newPath); err != nil {
-			c.HTML(http.StatusOK, "paralegal_edit.html", gin.H{
-				"Title":     "Edit Paralegal",
-				"Paralegal": paralegal,
-				"ErrorFile": "❌ Gagal upload file",
-			})
-			return
-		}
-
-		// hapus file lama kalau ada
-		if paralegal.Dokumen != "" {
-			_ = os.Remove(paralegal.Dokumen)
-		}
-
-		paralegal.Dokumen = strings.ReplaceAll(newPath, "\\", "/")
+		paralegal.Dokumen = fileBytes
+		paralegal.ContentType = file.Header.Get("Content-Type")
 	}
 
-	config.DB.Save(&paralegal)
+	if err := config.DB.Save(&paralegal).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Gagal update data")
+		return
+	}
+
 	c.Redirect(http.StatusFound, "/jadi/admin/paralegal")
 }
 
@@ -262,13 +210,10 @@ func ParalegalDelete(c *gin.Context) {
 		return
 	}
 
-	// hapus file PDF kalau ada
-	if paralegal.Dokumen != "" {
-		_ = os.Remove(paralegal.Dokumen)
+	if err := config.DB.Delete(&paralegal).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Gagal hapus data")
+		return
 	}
-
-	// hapus record
-	config.DB.Delete(&paralegal)
 
 	c.Redirect(http.StatusFound, "/jadi/admin/paralegal")
 }

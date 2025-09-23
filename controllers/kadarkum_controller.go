@@ -1,18 +1,13 @@
 package controllers
 
 import (
-	"fmt"
-	"math/rand"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
-	"time"
 
 	"go-admin/config"
 	"go-admin/models"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -20,8 +15,6 @@ import (
 // ================== INDEX ==================
 func KadarkumIndex(c *gin.Context) {
 	search := c.Query("q")
-
-	// pagination
 	limit := 50
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if page < 1 {
@@ -42,16 +35,19 @@ func KadarkumIndex(c *gin.Context) {
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Error hitung total")
+		c.String(http.StatusInternalServerError, "Error menghitung total data")
 		return
 	}
 
 	if err := db.Offset(offset).Limit(limit).Find(&kadarkums).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Error ambil data")
+		c.String(http.StatusInternalServerError, "Error mengambil data")
 		return
 	}
 
 	totalPages := int((total + int64(limit) - 1) / int64(limit))
+
+	session := sessions.Default(c)
+	user := session.Get("user")
 
 	c.HTML(http.StatusOK, "kadarkum_index.html", gin.H{
 		"Title":      "Data Kadarkum",
@@ -60,13 +56,18 @@ func KadarkumIndex(c *gin.Context) {
 		"Page":       page,
 		"Offset":     offset,
 		"TotalPages": totalPages,
+		"user":       user,
 	})
 }
 
 // ================== CREATE FORM ==================
 func KadarkumCreate(c *gin.Context) {
+	session := sessions.Default(c)
+	user := session.Get("user")
+
 	c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
 		"Title": "Tambah Kadarkum",
+		"user":  user,
 	})
 }
 
@@ -78,7 +79,7 @@ func KadarkumStore(c *gin.Context) {
 	// cek duplikasi
 	var existing models.Kadarkum
 	if err := config.DB.Where("kelurahan_id = ?", kelurahanID).First(&existing).Error; err == nil {
-		c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
+		c.HTML(http.StatusBadRequest, "kadarkum_create.html", gin.H{
 			"Title":          "Tambah Kadarkum",
 			"ErrorKelurahan": "❌ Kadarkum untuk kelurahan ini sudah ada",
 			"Catatan":        catatan,
@@ -88,7 +89,7 @@ func KadarkumStore(c *gin.Context) {
 
 	file, err := c.FormFile("dokumen")
 	if err != nil {
-		c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
+		c.HTML(http.StatusBadRequest, "kadarkum_create.html", gin.H{
 			"Title":     "Tambah Kadarkum",
 			"ErrorFile": "❌ Dokumen wajib diupload",
 			"Catatan":   catatan,
@@ -96,17 +97,17 @@ func KadarkumStore(c *gin.Context) {
 		return
 	}
 
-	// validasi file
 	if file.Size > 10*1024*1024 {
-		c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
+		c.HTML(http.StatusBadRequest, "kadarkum_create.html", gin.H{
 			"Title":     "Tambah Kadarkum",
 			"ErrorFile": "❌ Ukuran file maksimal 10MB",
 			"Catatan":   catatan,
 		})
 		return
 	}
-	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-		c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
+
+	if file.Header.Get("Content-Type") != "application/pdf" {
+		c.HTML(http.StatusBadRequest, "kadarkum_create.html", gin.H{
 			"Title":     "Tambah Kadarkum",
 			"ErrorFile": "❌ File harus berupa PDF",
 			"Catatan":   catatan,
@@ -114,32 +115,23 @@ func KadarkumStore(c *gin.Context) {
 		return
 	}
 
-	uploadPath := "uploads/kadarkum"
-	os.MkdirAll(uploadPath, os.ModePerm)
-
-	// generate nama file unik (timestamp + random)
-	ext := filepath.Ext(file.Filename)
-	newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
-	fullPath := filepath.Join(uploadPath, newName)
-
-	if err := c.SaveUploadedFile(file, fullPath); err != nil {
-		c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
-			"Title":     "Tambah Kadarkum",
-			"ErrorFile": "❌ Gagal upload file",
-			"Catatan":   catatan,
-		})
-		return
-	}
-
-	publicPath := strings.ReplaceAll(fullPath, "\\", "/")
+	f, _ := file.Open()
+	defer f.Close()
+	fileBytes := make([]byte, file.Size)
+	f.Read(fileBytes)
 
 	kadarkum := models.Kadarkum{
 		KelurahanID: uint(kelurahanID),
-		Dokumen:     publicPath,
+		Dokumen:     fileBytes,
+		ContentType: file.Header.Get("Content-Type"),
 		Catatan:     catatan,
 	}
 
-	config.DB.Create(&kadarkum)
+	if err := config.DB.Create(&kadarkum).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Gagal simpan data")
+		return
+	}
+
 	c.Redirect(http.StatusFound, "/jadi/admin/kadarkum")
 }
 
@@ -155,14 +147,18 @@ func KadarkumEdit(c *gin.Context) {
 		if err == gorm.ErrRecordNotFound {
 			c.String(http.StatusNotFound, "Data tidak ditemukan")
 		} else {
-			c.String(http.StatusInternalServerError, "Error DB")
+			c.String(http.StatusInternalServerError, "Error database")
 		}
 		return
 	}
 
+	session := sessions.Default(c)
+	user := session.Get("user")
+
 	c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
 		"Title":    "Edit Kadarkum",
 		"Kadarkum": kadarkum,
+		"user":     user,
 	})
 }
 
@@ -176,14 +172,14 @@ func KadarkumUpdate(c *gin.Context) {
 	}
 
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
+	catatan := c.PostForm("catatan")
 
-	// cek duplikasi selain dirinya sendiri
 	var count int64
 	config.DB.Model(&models.Kadarkum{}).
 		Where("kelurahan_id = ? AND id <> ?", kelurahanID, kadarkum.ID).
 		Count(&count)
 	if count > 0 {
-		c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
+		c.HTML(http.StatusBadRequest, "kadarkum_edit.html", gin.H{
 			"Title":          "Edit Kadarkum",
 			"Kadarkum":       kadarkum,
 			"ErrorKelurahan": "❌ Kadarkum untuk kelurahan ini sudah ada",
@@ -192,20 +188,21 @@ func KadarkumUpdate(c *gin.Context) {
 	}
 
 	kadarkum.KelurahanID = uint(kelurahanID)
-	kadarkum.Catatan = c.PostForm("catatan")
+	kadarkum.Catatan = catatan
 
 	file, err := c.FormFile("dokumen")
 	if err == nil {
 		if file.Size > 10*1024*1024 {
-			c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
+			c.HTML(http.StatusBadRequest, "kadarkum_edit.html", gin.H{
 				"Title":     "Edit Kadarkum",
 				"Kadarkum":  kadarkum,
 				"ErrorFile": "❌ Ukuran file maksimal 10MB",
 			})
 			return
 		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
+
+		if file.Header.Get("Content-Type") != "application/pdf" {
+			c.HTML(http.StatusBadRequest, "kadarkum_edit.html", gin.H{
 				"Title":     "Edit Kadarkum",
 				"Kadarkum":  kadarkum,
 				"ErrorFile": "❌ File harus berupa PDF",
@@ -213,31 +210,20 @@ func KadarkumUpdate(c *gin.Context) {
 			return
 		}
 
-		uploadPath := "uploads/kadarkum"
-		os.MkdirAll(uploadPath, os.ModePerm)
+		f, _ := file.Open()
+		defer f.Close()
+		fileBytes := make([]byte, file.Size)
+		f.Read(fileBytes)
 
-		ext := filepath.Ext(file.Filename)
-		newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
-		newPath := filepath.Join(uploadPath, newName)
-
-		if err := c.SaveUploadedFile(file, newPath); err != nil {
-			c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
-				"Title":     "Edit Kadarkum",
-				"Kadarkum":  kadarkum,
-				"ErrorFile": "❌ Gagal upload file",
-			})
-			return
-		}
-
-		// hapus file lama kalau ada
-		if kadarkum.Dokumen != "" {
-			_ = os.Remove(kadarkum.Dokumen)
-		}
-
-		kadarkum.Dokumen = strings.ReplaceAll(newPath, "\\", "/")
+		kadarkum.Dokumen = fileBytes
+		kadarkum.ContentType = file.Header.Get("Content-Type")
 	}
 
-	config.DB.Save(&kadarkum)
+	if err := config.DB.Save(&kadarkum).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Gagal update data")
+		return
+	}
+
 	c.Redirect(http.StatusFound, "/jadi/admin/kadarkum")
 }
 
@@ -251,11 +237,10 @@ func KadarkumDelete(c *gin.Context) {
 		return
 	}
 
-	// hapus file kalau ada
-	if kadarkum.Dokumen != "" {
-		_ = os.Remove(kadarkum.Dokumen)
+	if err := config.DB.Delete(&kadarkum).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Gagal hapus data")
+		return
 	}
 
-	config.DB.Delete(&kadarkum)
 	c.Redirect(http.StatusFound, "/jadi/admin/kadarkum")
 }

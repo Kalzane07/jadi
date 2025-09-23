@@ -37,7 +37,7 @@
         <h4 class="text-light text-center mb-4">Admin Panel</h4>
         <a href="/jadi/admin">🏠 Dashboard</a>
         <a href="/jadi/admin/posbankum">📂 Posbankum</a>
-        <a href="/jadi/admin/paralegal">👥 Paralegal</a>
+        <a href="/jadi/admin/paralegal" class="bg-dark text-light">👥 Paralegal</a>
         <a href="/jadi/admin/kadarkum">📘 Kadarkum</a>
         <a href="/jadi/admin/pja">📑 PJA</a>
         <hr class="text-light">
@@ -54,7 +54,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">{{ .Title }}</span>
+            <span class="navbar-brand mb-0 h1">Paralegal</span>
             <span class="text-light">👤 {{ .user }}</span>
         </div>
     </nav>
@@ -63,7 +63,7 @@
     <div class="content mt-5 pt-4">
         <div class="container">
             <div class="card shadow-lg">
-                <div class="card-header bg-warning">
+                <div class="card-header bg-warning text-dark">
                     <h5 class="mb-0">✏️ Edit Paralegal</h5>
                 </div>
                 <div class="card-body">
@@ -76,7 +76,7 @@
                             <div class="invalid-feedback">Nama wajib diisi.</div>
                         </div>
     
-                        <!-- Posbankum (read-only) -->
+                        <!-- Posbankum -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Posbankum</label>
                             <input type="text" class="form-control" 
@@ -91,12 +91,12 @@
                             <input type="file" name="dokumen" accept="application/pdf" class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
                             <div class="form-text text-muted">
                                 File PDF, maksimal 10MB. <br>
-                                Dokumen sekarang:
-                                {{ if .Paralegal.Dokumen }}
-                                    <a href="{{ .Paralegal.Dokumen | formatDokumenURL }}" target="_blank">Lihat Dokumen</a>
-                                {{ else }}
-                                    <span class="text-muted">Belum ada</span>
-                                {{ end }}
+<!-- {{ if .Paralegal.Dokumen }}
+    <a href="{{ .Paralegal.ID | formatDokumenURL }}" target="_blank">📄 Lihat Dokumen</a>
+{{ else }}
+    <span class="text-muted">Belum ada</span>
+{{ end }} -->
+
                             </div>
                             <div class="invalid-feedback">
                                 {{ if .ErrorFile }}

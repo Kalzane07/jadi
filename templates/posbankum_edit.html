@@ -85,12 +85,12 @@
                             <input type="file" name="dokumen" accept="application/pdf" class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
                             <div class="form-text text-muted">
                                 File PDF, maksimal 10MB. <br>
-                                Dokumen sekarang: 
-                                {{ if .Posbankum.Dokumen }}
-                                    <a href="{{ .Posbankum.Dokumen | formatDokumenURL }}" target="_blank">Lihat Dokumen</a>
-                                {{ else }}
-                                    <span class="text-muted">Belum ada</span>
-                                {{ end }}
+                                <!-- Dokumen sekarang: 
+{{ if .Posbankum.Dokumen }}
+   <a href="/jadi/dokumen/posbankum/{{ .Posbankum.ID }}" target="_blank">Lihat Dokumen</a>
+{{ else }}
+   <span class="text-muted">Belum ada</span>
+{{ end }} -->
                             </div>
                             <div class="invalid-feedback">
                                 {{ if .ErrorFile }}

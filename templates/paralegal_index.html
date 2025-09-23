@@ -109,13 +109,15 @@
                             <td class="py-3 px-4">{{ $p.Posbankum.Kelurahan.Name }}</td>
                             <td class="py-3 px-4">{{ $p.Posbankum.Kelurahan.Kecamatan.Name }}</td>
                             <td class="py-3 px-4">{{ $p.Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
-                            <td class="py-3 px-4">
-                                {{ if $p.Dokumen }}
-                                <a href="{{ .Dokumen | formatDokumenURL }}" target="_blank">Lihat Dokumen</a>
-                                {{ else }}
-                                <span class="text-gray-400">Belum ada</span>
-                                {{ end }}
-                            </td>
+<td class="py-3 px-4">
+    {{ if $p.Dokumen }}
+    <a href="/jadi/dokumen/paralegal/{{.ID}}" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
+        <i class="fas fa-file-alt"></i> Lihat Dokumen
+    </a>
+    {{ else }}
+    <span class="text-gray-400">Belum ada</span>
+    {{ end }}
+</td>
                             <td class="py-3 px-4">{{ $p.Nama }}</td>
 <td class="py-3 px-4">
     <a href="/jadi/admin/paralegal/edit/{{ $p.ID }}" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2">✏️ Edit</a>

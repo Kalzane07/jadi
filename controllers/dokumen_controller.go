@@ -1,48 +1,126 @@
-package controllers // ... (import statements)
+package controllers
+
 import (
-	// ...
-	"net/http"      // <--- Pastikan ini ada
-	"os"            // <--- Pastikan ini ada
-	"path/filepath" // <--- Tambahkan ini
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+
+	"go-admin/config"
+	"go-admin/models"
 
 	"github.com/gin-gonic/gin"
 )
 
-// ... (fungsi controller lainnya)
-
-// ================== SERVE DOKUMEN AMAN ==================
-func ServeDokumen(c *gin.Context) {
-	// 1. Ambil parameter dari URL
+// ================== GENERIC FILE SYSTEM (untuk data lama) ==================
+func ServeDokumenFile(c *gin.Context) {
 	tipe := c.Param("tipe")
 	filename := c.Param("filename")
 
-	// 2. Keamanan: Whitelist tipe folder yang diizinkan
-	// Ini untuk mencegah orang mencoba mengakses folder lain seperti ../../
-	allowedTypes := map[string]bool{
-		"posbankum": true,
-		"paralegal": true,
-		"pja":       true,
-		"kadarkum":  true,
-	}
-	if !allowedTypes[tipe] {
-		c.String(http.StatusForbidden, "Tipe dokumen tidak valid")
-		return
-	}
+	// Lokasi folder upload
+	filePath := filepath.Join("uploads", tipe, filename)
 
-	// 3. Keamanan: Bersihkan nama file dari karakter aneh (mencegah path traversal)
-	// filepath.Base akan menghapus semua prefix direktori seperti ../
-	cleanFilename := filepath.Base(filename)
-
-	// 4. Gabungkan path menjadi path file yang sebenarnya di server
-	fileLocation := filepath.Join("uploads", tipe, cleanFilename)
-
-	// 5. Cek apakah file benar-benar ada
-	if _, err := os.Stat(fileLocation); os.IsNotExist(err) {
+	// Cek file ada atau tidak
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		c.String(http.StatusNotFound, "File tidak ditemukan")
 		return
 	}
 
-	// 6. Sajikan file ke pengguna
-	// c.File() secara otomatis mengatur Content-Type dan header lain yang diperlukan
-	c.File(fileLocation)
+	c.File(filePath)
+}
+
+//
+// ================== DOKUMEN DARI DATABASE (per modul) ==================
+//
+
+// ViewPosbankumDokumen
+func ViewPosbankumDokumen(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	var posbankum models.Posbankum
+	if err := config.DB.First(&posbankum, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Dokumen tidak ditemukan")
+		return
+	}
+
+	if posbankum.Dokumen != nil {
+		c.Header("Content-Type", posbankum.ContentType)
+		c.Data(http.StatusOK, posbankum.ContentType, posbankum.Dokumen)
+	} else {
+		c.String(http.StatusNotFound, "Dokumen kosong")
+	}
+}
+
+// ViewParalegalDokumen
+func ViewParalegalDokumen(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	var paralegal models.Paralegal
+	if err := config.DB.First(&paralegal, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Dokumen tidak ditemukan")
+		return
+	}
+
+	if paralegal.Dokumen != nil {
+		c.Header("Content-Type", paralegal.ContentType)
+		c.Data(http.StatusOK, paralegal.ContentType, paralegal.Dokumen)
+	} else {
+		c.String(http.StatusNotFound, "Dokumen kosong")
+	}
+}
+
+// ViewPJADokumen
+func ViewPJADokumen(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	var pja models.PJA
+	if err := config.DB.First(&pja, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Dokumen tidak ditemukan")
+		return
+	}
+
+	if pja.Dokumen != nil {
+		c.Header("Content-Type", pja.ContentType)
+		c.Data(http.StatusOK, pja.ContentType, pja.Dokumen)
+	} else {
+		c.String(http.StatusNotFound, "Dokumen kosong")
+	}
+}
+
+// ViewKadarkumDokumen
+func ViewKadarkumDokumen(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID tidak valid")
+		return
+	}
+
+	var kadarkum models.Kadarkum
+	if err := config.DB.First(&kadarkum, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Dokumen tidak ditemukan")
+		return
+	}
+
+	if kadarkum.Dokumen != nil {
+		c.Header("Content-Type", kadarkum.ContentType)
+		c.Data(http.StatusOK, kadarkum.ContentType, kadarkum.Dokumen)
+	} else {
+		c.String(http.StatusNotFound, "Dokumen kosong")
+	}
 }

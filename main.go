@@ -72,48 +72,37 @@ func toJSON(v interface{}) template.JS {
 
 // ============ HELPER FUNCTIONS BARU (UNTUK DOKUMEN AMAN) ============
 
-func formatDokumenURL(path string) string {
-	if path == "" {
-		return "#"
-	}
-	parts := strings.Split(path, "/")
-	if len(parts) != 3 {
-		log.Printf("Format path dokumen tidak valid: %s", path)
-		return "#"
-	}
-	return fmt.Sprintf("/jadi/dokumen/%s/%s", parts[1], parts[2])
+// ✅ Helper function ini sekarang menerima ID, bukan path
+func formatDokumenURL(id uint) string {
+	return fmt.Sprintf("/jadi/dokumen/view/%d", id) // ✅ Ubah path untuk menghindari konflik
 }
 
-func renderDokumenLinks(dokumenData interface{}) template.HTML {
+// ✅ Helper function ini sekarang menerima data dokumen dan me-render link
+func renderDokumenLink(dokumenData interface{}) template.HTML {
 	if dokumenData == nil {
 		return ""
 	}
-	if reflect.TypeOf(dokumenData).Kind() == reflect.Slice {
-		slice := reflect.ValueOf(dokumenData)
-		var links strings.Builder
-		for i := 0; i < slice.Len(); i++ {
-			path, ok := slice.Index(i).Interface().(string)
-			if !ok {
-				continue
-			}
-			url := formatDokumenURL(path)
-			linkHTML := fmt.Sprintf(
-				`<a href="%s" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors mr-1 mb-1">
-					<i class="fas fa-file-alt"></i> Dokumen
-				</a>`, url)
-			links.WriteString(linkHTML)
-		}
-		return template.HTML(links.String())
+	// Periksa apakah dokumenData adalah objek model Posbankum, PJA, dll.
+	val := reflect.ValueOf(dokumenData)
+	if val.Kind() != reflect.Struct {
+		return ""
 	}
-	if path, ok := dokumenData.(string); ok && path != "" {
-		url := formatDokumenURL(path)
-		linkHTML := fmt.Sprintf(
-			`<a href="%s" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
-				<i class="fas fa-file-alt"></i> Dokumen
-			</a>`, url)
-		return template.HTML(linkHTML)
+
+	idField := val.FieldByName("ID")
+	if !idField.IsValid() {
+		return ""
 	}
-	return ""
+	id, ok := idField.Interface().(uint)
+	if !ok {
+		return ""
+	}
+
+	url := formatDokumenURL(id)
+	linkHTML := fmt.Sprintf(
+		`<a href="%s" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
+            <i class="fas fa-file-alt"></i> Dokumen
+        </a>`, url)
+	return template.HTML(linkHTML)
 }
 
 func main() {
@@ -121,31 +110,33 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 
+	// ✅ Menambahkan logger middleware Gin untuk menampilkan detail setiap permintaan.
+	r.Use(gin.Logger())
+
 	if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		log.Fatal("Gagal set trusted proxies:", err)
 	}
 
 	funcMap := template.FuncMap{
-		"add":                add,
-		"sub":                sub,
-		"iter":               iter,
-		"now":                now,
-		"calcPersen":         calcPersen,
-		"calcTotal":          calcTotal,
-		"totalTercapai":      totalTercapai,
-		"totalKeseluruhan":   totalKeseluruhan,
-		"isSlice":            isSlice,
-		"toJSON":             toJSON,
-		"hasPrefix":          strings.HasPrefix,
-		"hasSuffix":          strings.HasSuffix,
-		"formatDokumenURL":   formatDokumenURL,
-		"renderDokumenLinks": renderDokumenLinks,
+		"add":               add,
+		"sub":               sub,
+		"iter":              iter,
+		"now":               now,
+		"calcPersen":        calcPersen,
+		"calcTotal":         calcTotal,
+		"totalTercapai":     totalTercapai,
+		"totalKeseluruhan":  totalKeseluruhan,
+		"isSlice":           isSlice,
+		"toJSON":            toJSON,
+		"hasPrefix":         strings.HasPrefix,
+		"hasSuffix":         strings.HasSuffix,
+		"formatDokumenURL":  formatDokumenURL,
+		"renderDokumenLink": renderDokumenLink,
 	}
 	r.SetFuncMap(funcMap)
 	r.LoadHTMLGlob("templates/*")
 
 	// Session setup
-	// Kunci sesi sekarang di hardcode untuk menghindari error variabel lingkungan.
 	sessionKey := "kunci-rahasia-anda"
 	store := cookie.NewStore([]byte(sessionKey))
 	store.Options(sessions.Options{
@@ -158,11 +149,13 @@ func main() {
 	r.Use(sessions.Sessions("mysession", store))
 
 	config.ConnectDB()
-
 	jadi := r.Group("/jadi")
 	{
 		routes.SetupRoutes(jadi)
 		jadi.Static("/static", "./static")
+
+		// ✅ HAPUS baris ini karena sudah ditangani di routes.go
+		// jadi.GET("/dokumen/:id", controllers.ServeDocumentFromDB)
 	}
 
 	fmt.Println("✅ Server berjalan di http://localhost:8080/jadi")

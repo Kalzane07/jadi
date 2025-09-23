@@ -26,7 +26,7 @@ type Kabupaten struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 
-	Provinsi   Provinsi    // ✅ biar bisa Preload("Provinsi")
+	Provinsi   Provinsi    // biar bisa Preload("Provinsi")
 	Kecamatans []Kecamatan `gorm:"foreignKey:KabupatenID"`
 }
 
@@ -39,7 +39,7 @@ type Kecamatan struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 
-	Kabupaten  Kabupaten   // ✅ biar bisa Preload("Kabupaten")
+	Kabupaten  Kabupaten   // biar bisa Preload("Kabupaten")
 	Kelurahans []Kelurahan `gorm:"foreignKey:KecamatanID"`
 }
 
@@ -52,7 +52,7 @@ type Kelurahan struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 
-	Kecamatan  Kecamatan   // ✅ biar bisa Preload("Kecamatan")
+	Kecamatan  Kecamatan   // biar bisa Preload("Kecamatan")
 	Posbankums []Posbankum `gorm:"foreignKey:KelurahanID"`
 	Kadarkums  []Kadarkum  `gorm:"foreignKey:KelurahanID"`
 	PJAs       []PJA       `gorm:"foreignKey:KelurahanID"`
@@ -64,7 +64,8 @@ type Kelurahan struct {
 type Posbankum struct {
 	ID          uint   `gorm:"primaryKey"`
 	KelurahanID uint   `gorm:"not null"`
-	Dokumen     string `gorm:"type:text;not null"`
+	Dokumen     []byte `gorm:"type:longblob"` // ✅ Ubah ke []byte untuk menyimpan data biner
+	ContentType string `gorm:"not null"`      // ✅ Tambahkan ContentType
 	Catatan     string `gorm:"type:text"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -78,7 +79,8 @@ type Paralegal struct {
 	ID          uint   `gorm:"primaryKey"`
 	PosbankumID uint   `gorm:"not null"`
 	Nama        string `gorm:"not null"`
-	Dokumen     string `gorm:"type:text"`
+	Dokumen     []byte `gorm:"type:longblob"` // ✅ Ubah ke []byte
+	ContentType string `gorm:"not null"`      // ✅ Tambahkan ContentType
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 
@@ -89,7 +91,8 @@ type Paralegal struct {
 type PJA struct {
 	ID          uint   `gorm:"primaryKey"`
 	KelurahanID uint   `gorm:"not null"`
-	Dokumen     string `gorm:"type:text;not null"`
+	Dokumen     []byte `gorm:"type:longblob"` // ✅ Ubah ke []byte
+	ContentType string `gorm:"not null"`      // ✅ Tambahkan ContentType
 	Catatan     string `gorm:"type:text"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -101,7 +104,8 @@ type PJA struct {
 type Kadarkum struct {
 	ID          uint   `gorm:"primaryKey"`
 	KelurahanID uint   `gorm:"not null"`
-	Dokumen     string `gorm:"type:text;not null"`
+	Dokumen     []byte `gorm:"type:longblob"` // ✅ Ubah ke []byte
+	ContentType string `gorm:"not null"`      // ✅ Tambahkan ContentType
 	Catatan     string `gorm:"type:text"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

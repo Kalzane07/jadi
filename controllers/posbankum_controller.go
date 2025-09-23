@@ -1,19 +1,16 @@
 package controllers
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 
 	"go-admin/config"
 	"go-admin/models"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -76,7 +73,7 @@ func PosbankumCreate(c *gin.Context) {
 	})
 }
 
-// ================== STORE ==================
+// ================== STORE DOKUMEN KE DATABASE ==================
 func PosbankumStore(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
 	catatan := c.PostForm("catatan")
@@ -109,7 +106,9 @@ func PosbankumStore(c *gin.Context) {
 		})
 		return
 	}
-	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
+
+	fileType := file.Header.Get("Content-Type")
+	if fileType != "application/pdf" {
 		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
 			"Title":     "Tambah Posbankum",
 			"ErrorFile": "File harus berformat PDF.",
@@ -118,29 +117,30 @@ func PosbankumStore(c *gin.Context) {
 		return
 	}
 
-	uploadPath := "uploads/posbankum"
-	if err := os.MkdirAll(uploadPath, os.ModePerm); err != nil {
-		c.String(http.StatusInternalServerError, "Gagal membuat direktori upload")
+	src, err := file.Open()
+	if err != nil {
+		log.Println("Gagal memproses file:", err)
+		c.String(http.StatusInternalServerError, "Gagal memproses file")
+		return
+	}
+	defer src.Close()
+
+	fileBytes, err := ioutil.ReadAll(src)
+	if err != nil {
+		log.Println("Gagal membaca file:", err)
+		c.String(http.StatusInternalServerError, "Gagal membaca file")
 		return
 	}
 
-	ext := filepath.Ext(file.Filename)
-	newName := uuid.New().String() + ext
-	fullPath := filepath.Join(uploadPath, newName)
-
-	if err := c.SaveUploadedFile(file, fullPath); err != nil {
-		c.String(http.StatusInternalServerError, "Gagal menyimpan file")
-		return
-	}
-
-	publicPath := strings.ReplaceAll(fullPath, "\\", "/")
 	posbankum := models.Posbankum{
 		KelurahanID: uint(kelurahanID),
-		Dokumen:     publicPath,
+		Dokumen:     fileBytes,
+		ContentType: fileType,
 		Catatan:     catatan,
 	}
 
 	if err := config.DB.Create(&posbankum).Error; err != nil {
+		log.Println("Gagal menyimpan data ke database:", err)
 		c.String(http.StatusInternalServerError, "Gagal menyimpan data ke database")
 		return
 	}
@@ -174,17 +174,12 @@ func PosbankumEdit(c *gin.Context) {
 	})
 }
 
-// ================== UPDATE ==================
+// ================== UPDATE DOKUMEN DI DATABASE ==================
 func PosbankumUpdate(c *gin.Context) {
 	id := c.Param("id")
 	var posbankum models.Posbankum
 
-	// OPTIMISASI: Mengambil data lengkap dengan preload cukup satu kali di awal.
-	if err := config.DB.
-		Preload("Kelurahan").
-		Preload("Kelurahan.Kecamatan").
-		Preload("Kelurahan.Kecamatan.Kabupaten").
-		First(&posbankum, id).Error; err != nil {
+	if err := config.DB.First(&posbankum, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.String(http.StatusNotFound, "Data tidak ditemukan")
 		} else {
@@ -228,7 +223,8 @@ func PosbankumUpdate(c *gin.Context) {
 			})
 			return
 		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
+		fileType := file.Header.Get("Content-Type")
+		if fileType != "application/pdf" {
 			session := sessions.Default(c)
 			user := session.Get("user")
 			c.HTML(http.StatusBadRequest, "posbankum_edit.html", gin.H{
@@ -240,25 +236,24 @@ func PosbankumUpdate(c *gin.Context) {
 			return
 		}
 
-		uploadPath := "uploads/posbankum"
-		os.MkdirAll(uploadPath, os.ModePerm)
+		src, err := file.Open()
+		if err != nil {
+			log.Println("Gagal membuka file:", err)
+			c.String(http.StatusInternalServerError, "Gagal memproses file baru")
+			return
+		}
+		defer src.Close()
 
-		ext := filepath.Ext(file.Filename)
-		newName := uuid.New().String() + ext
-		newPath := filepath.Join(uploadPath, newName)
-
-		if err := c.SaveUploadedFile(file, newPath); err != nil {
-			c.String(http.StatusInternalServerError, "Gagal menyimpan file baru")
+		fileBytes, err := ioutil.ReadAll(src)
+		if err != nil {
+			log.Println("Gagal membaca file:", err)
+			c.String(http.StatusInternalServerError, "Gagal membaca file baru")
 			return
 		}
 
-		if posbankum.Dokumen != "" {
-			if err := os.Remove(posbankum.Dokumen); err != nil {
-				log.Printf("Gagal menghapus file lama: %s, error: %v", posbankum.Dokumen, err)
-			}
-		}
-
-		posbankum.Dokumen = strings.ReplaceAll(newPath, "\\", "/")
+		// ✅ Update field dokumen dan tipe konten dengan data file baru
+		posbankum.Dokumen = fileBytes
+		posbankum.ContentType = fileType
 	}
 
 	if err := config.DB.Save(&posbankum).Error; err != nil {
@@ -268,7 +263,7 @@ func PosbankumUpdate(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
 }
 
-// ================== DELETE ==================
+// ================== DELETE DOKUMEN DARI DATABASE ==================
 func PosbankumDelete(c *gin.Context) {
 	id := c.Param("id")
 	var posbankum models.Posbankum
@@ -278,12 +273,7 @@ func PosbankumDelete(c *gin.Context) {
 		return
 	}
 
-	if posbankum.Dokumen != "" {
-		if err := os.Remove(posbankum.Dokumen); err != nil {
-			log.Printf("Gagal menghapus file: %s, error: %v", posbankum.Dokumen, err)
-		}
-	}
-
+	// ✅ Cukup hapus record dari database, tidak ada file yang perlu dihapus dari sistem file
 	if err := config.DB.Delete(&posbankum).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Gagal menghapus data dari database")
 		return
@@ -292,31 +282,31 @@ func PosbankumDelete(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
 }
 
-// ================== API: Autocomplete Kelurahan ==================
-func KelurahanSearch(c *gin.Context) {
+// ================== API SEARCH ==================
+func PosbankumSearch(c *gin.Context) {
 	term := c.Query("term")
-	if term == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "term is required"})
+
+	var results []struct {
+		ID        uint   `json:"id"`
+		Kelurahan string `json:"kelurahan"`
+		Kecamatan string `json:"kecamatan"`
+		Kabupaten string `json:"kabupaten"`
+	}
+
+	// Join biar bisa dapet nama wilayah
+	err := config.DB.Table("posbankums").
+		Select("posbankums.id, kelurahans.name AS kelurahan, kecamatans.name AS kecamatan, kabupatens.name AS kabupaten").
+		Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").
+		Joins("JOIN kecamatans ON kecamatans.id = kelurahans.kecamatan_id").
+		Joins("JOIN kabupatens ON kabupatens.id = kecamatans.kabupaten_id").
+		Where("kelurahans.name LIKE ? OR kecamatans.name LIKE ? OR kabupatens.name LIKE ?", "%"+term+"%", "%"+term+"%", "%"+term+"%").
+		Limit(20).
+		Scan(&results).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "gagal ambil data"})
 		return
 	}
 
-	var kelurahans []models.Kelurahan
-	config.DB.
-		Preload("Kecamatan").
-		Preload("Kecamatan.Kabupaten").
-		Where("name LIKE ?", "%"+strings.TrimSpace(term)+"%").
-		Limit(20).
-		Find(&kelurahans)
-
-	results := []gin.H{}
-	for _, k := range kelurahans {
-		results = append(results, gin.H{
-			"id":        k.ID,
-			"name":      k.Name,
-			"kecamatan": k.Kecamatan.Name,
-			"kabupaten": k.Kecamatan.Kabupaten.Name,
-		})
-	}
-
-	c.JSON(http.StatusOK, results)
+	c.JSON(http.StatusOK, gin.H{"results": results})
 }

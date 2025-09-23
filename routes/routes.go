@@ -17,7 +17,6 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	jadi.GET("/logout", controllers.Logout)
 
 	// ================= ROUTES ADMIN (UNTUK HALAMAN WEB) =================
-	// Grup ini khusus untuk halaman-halaman yang merender HTML dan butuh role "admin".
 	admin := jadi.Group("/admin")
 	admin.Use(controllers.AuthRequired(), controllers.RoleRequired("admin"))
 	{
@@ -72,16 +71,10 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	}
 
 	// ================= ROUTES API (UNTUK DATA JSON) =================
-	// Grup ini khusus untuk endpoint API yang mengembalikan data JSON.
-	// Cukup pakai AuthRequired() saja, karena tidak merender halaman admin.
 	api := jadi.Group("/api")
 	api.Use(controllers.AuthRequired())
 	{
 		api.GET("/kelurahan/search", controllers.KelurahanSearch)
-		api.GET("/posbankum/search", controllers.PosbankumSearch)
-		api.GET("/kadarkum/search", controllers.PosbankumSearch)
-		api.GET("/pja/search", controllers.PosbankumSearch)
-		api.GET("/paralegal/search", controllers.PosbankumSearch)
 	}
 
 	// ================= ROUTES USER =================
@@ -90,15 +83,21 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	{
 		user.GET("/", controllers.UserDashboard)
 	}
+
 	// ================== DOKUMEN YANG DIPROTEKSI ==================
-	// Grup ini khusus untuk menyajikan file yang butuh login
-	// Kita hanya perlu AuthRequired(), karena admin dan user biasa boleh melihat file
-	// selama mereka sudah login.
 	dokumen := jadi.Group("/dokumen")
 	dokumen.Use(controllers.AuthRequired())
 	{
-		// :tipe akan menjadi nama folder (posbankum, paralegal, dll)
-		// :filename akan menjadi nama file (uuid-nya.pdf)
-		dokumen.GET("/:tipe/:filename", controllers.ServeDokumen)
+		// POSBANKUM
+		dokumen.GET("/posbankum/:id", controllers.GetPosbankumDokumen)
+
+		// PARALEGAL
+		dokumen.GET("/paralegal/:id", controllers.GetParalegalDokumen)
+
+		// PJA
+		dokumen.GET("/pja/:id", controllers.GetPJADokumen)
+
+		// KADARKUM
+		dokumen.GET("/kadarkum/:id", controllers.GetKadarkumDokumen)
 	}
 }
