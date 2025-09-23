@@ -219,13 +219,13 @@ func UserDashboard(c *gin.Context) {
 			// ================== PJA ==================
 			var totalP, tercapaiP int64
 			config.DB.Model(&models.Kelurahan{}).Where("kecamatan_id = ?", kec.ID).Count(&totalP)
-			config.DB.Model(&models.PJA{}).
+			config.DB.Model(&models.Pja{}).
 				Joins("JOIN kelurahans ON kelurahans.id = pjas.kelurahan_id").
 				Where("kelurahans.kecamatan_id = ? AND pjas.dokumen <> ''", kec.ID).Count(&tercapaiP)
 
 			var kelurahanDocsPja []KelurahanDokumen
 			for _, kel := range kec.Kelurahans {
-				var docs []models.PJA
+				var docs []models.Pja
 				config.DB.Where("kelurahan_id = ?", kel.ID).Find(&docs)
 
 				var dokList []string

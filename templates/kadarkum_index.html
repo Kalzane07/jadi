@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Kadarkum</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/jadi/static/output.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         body {
@@ -41,19 +41,19 @@
     <div class="sidebar h-screen fixed top-0 left-0 p-4 flex flex-col shadow-lg z-40">
         <h4 class="text-xl font-bold text-white mb-8">Admin Panel</h4>
         <ul class="space-y-2">
-            <li><a class="nav-link" href="/admin">🏠 Dashboard</a></li>
-            <li><a class="nav-link" href="/admin/posbankum">📂 Posbankum</a></li>
-            <li><a class="nav-link" href="/admin/paralegal">👥 Paralegal</a></li>
-            <li><a class="nav-link bg-gray-700 text-white" href="/admin/kadarkum">📘 Kadarkum</a></li>
-            <li><a class="nav-link" href="/admin/pja">📑 PJA</a></li>
+            <li><a class="nav-link" href="/jadi/admin">🏠 Dashboard</a></li>
+            <li><a class="nav-link" href="/jadi/admin/posbankum">📂 Posbankum</a></li>
+            <li><a class="nav-link" href="/jadi/admin/paralegal">👥 Paralegal</a></li>
+            <li><a class="nav-link bg-gray-700 text-white" href="/jadi/admin/kadarkum">📘 Kadarkum</a></li>
+            <li><a class="nav-link" href="/jadi/admin/pja">📑 PJA</a></li>
             <li><hr class="my-4 border-gray-600"></li>
             <li class="px-3 text-sm font-semibold text-gray-500">Master Wilayah</li>
-            <li><a class="nav-link submenu" href="/admin/provinsi">🌍 Provinsi</a></li>
-            <li><a class="nav-link submenu" href="/admin/kabupaten">🏙️ Kabupaten/Kota</a></li>
-            <li><a class="nav-link submenu" href="/admin/kecamatan">📌 Kecamatan</a></li>
-            <li><a class="nav-link submenu" href="/admin/kelurahan">🏡 Kelurahan/Desa</a></li>
+            <li><a class="nav-link submenu" href="/jadi/admin/provinsi">🌍 Provinsi</a></li>
+            <li><a class="nav-link submenu" href="/jadi/admin/kabupaten">🏙️ Kabupaten/Kota</a></li>
+            <li><a class="nav-link submenu" href="/jadi/admin/kecamatan">📌 Kecamatan</a></li>
+            <li><a class="nav-link submenu" href="/jadi/admin/kelurahan">🏡 Kelurahan/Desa</a></li>
             <li><hr class="my-4 border-gray-600"></li>
-            <li><a class="nav-link" href="/logout">🚪 Logout</a></li>
+            <li><a class="nav-link" href="/jadi/logout">🚪 Logout</a></li>
         </ul>
     </div>
 
@@ -78,7 +78,7 @@
                             🔍 Cari
                         </button>
                     </form>
-                    <a href="/admin/kadarkum/create" class="bg-green-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-green-700 transition duration-300 text-center">
+                    <a href="/jadi/admin/kadarkum/create" class="bg-green-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-green-700 transition duration-300 text-center">
                         ➕ Tambah
                     </a>
                 </div>
@@ -108,15 +108,15 @@
                             <td class="py-3 px-4">{{ $k.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
                             <td class="py-3 px-4">
                                 {{ if $k.Dokumen }}
-                                <a href="/{{ $k.Dokumen }}" target="_blank" class="text-blue-600 hover:underline font-medium">📄 Lihat PDF</a>
+                                <a href="/jadi/{{ $k.Dokumen }}" target="_blank" class="text-blue-600 hover:underline font-medium">📄 Lihat PDF</a>
                                 {{ else }}
                                 <span class="text-gray-400">Belum ada</span>
                                 {{ end }}
                             </td>
                             <td class="py-3 px-4">{{ $k.Catatan }}</td>
 <td class="py-3 px-4">
-    <a href="/admin/kadarkum/edit/{{ $k.ID }}" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2">✏️ Edit</a>
-    <a href="/admin/kadarkum/delete/{{ $k.ID }}" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="text-red-500 hover:text-red-600 font-medium">🗑️ Hapus</a>
+    <a href="/jadi/admin/kadarkum/edit/{{ $k.ID }}" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2">✏️ Edit</a>
+    <a href="/jadi/admin/kadarkum/delete/{{ $k.ID }}" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="text-red-500 hover:text-red-600 font-medium">🗑️ Hapus</a>
 </td>
                         </tr>
                         {{ else }}
@@ -133,23 +133,23 @@
                 <ul class="flex items-center gap-1">
                     {{ if gt .Page 1 }}
                     <li>
-                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition" href="/admin/kadarkum?page={{ sub .Page 1 }}&q={{ .Search }}">← Prev</a>
+                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition" href="/jadi/admin/kadarkum?page={{ sub .Page 1 }}&q={{ .Search }}">← Prev</a>
                     </li>
                     {{ end }}
                     {{ range $i := iter .TotalPages }}
                     <li class="{{ if eq $.Page (add $i 1) }}active{{ end }}">
-                        <a class="px-4 py-2 rounded-md {{ if eq $.Page (add $i 1) }}bg-blue-600 text-white{{ else }}bg-white text-gray-700 border border-gray-300{{ end }} hover:bg-blue-700 hover:text-white transition" href="/admin/kadarkum?page={{ add $i 1 }}&q={{ $.Search }}">{{ add $i 1 }}</a>
+                        <a class="px-4 py-2 rounded-md {{ if eq $.Page (add $i 1) }}bg-blue-600 text-white{{ else }}bg-white text-gray-700 border border-gray-300{{ end }} hover:bg-blue-700 hover:text-white transition" href="/jadi/admin/kadarkum?page={{ add $i 1 }}&q={{ $.Search }}">{{ add $i 1 }}</a>
                     </li>
                     {{ end }}
                     {{ if lt .Page .TotalPages }}
                     <li>
-                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition" href="/admin/kadarkum?page={{ add .Page 1 }}&q={{ .Search }}">Next →</a>
+                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition" href="/jadi/admin/kadarkum?page={{ add .Page 1 }}&q={{ .Search }}">Next →</a>
                     </li>
                     {{ end }}
                 </ul>
             </nav>
             <div class="text-center mt-6">
-                <a href="/admin" class="inline-block bg-gray-500 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-gray-600 transition duration-300">
+                <a href="/jadi/admin" class="inline-block bg-gray-500 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-gray-600 transition duration-300">
                     ← Kembali ke Dashboard
                 </a>
             </div>

@@ -55,7 +55,7 @@ type Kelurahan struct {
 	Kecamatan  Kecamatan   // ✅ biar bisa Preload("Kecamatan")
 	Posbankums []Posbankum `gorm:"foreignKey:KelurahanID"`
 	Kadarkums  []Kadarkum  `gorm:"foreignKey:KelurahanID"`
-	PJAs       []PJA       `gorm:"foreignKey:KelurahanID"`
+	Pjas       []Pja       `gorm:"foreignKey:KelurahanID"`
 }
 
 // ================= Entity Utama =================
@@ -86,7 +86,7 @@ type Paralegal struct {
 }
 
 // PJA
-type PJA struct {
+type Pja struct {
 	ID          uint   `gorm:"primaryKey"`
 	KelurahanID uint   `gorm:"not null"`
 	Dokumen     string `gorm:"type:text;not null"`

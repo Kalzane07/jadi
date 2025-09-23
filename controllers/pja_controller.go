@@ -28,8 +28,8 @@ func PJAIndex(c *gin.Context) {
 	}
 	offset := (page - 1) * limit
 
-	var pjas []models.PJA
-	db := config.DB.Model(&models.PJA{}).
+	var pjas []models.Pja
+	db := config.DB.Model(&models.Pja{}).
 		Preload("Kelurahan").
 		Preload("Kelurahan.Kecamatan").
 		Preload("Kelurahan.Kecamatan.Kabupaten")
@@ -74,7 +74,7 @@ func PJAStore(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
 	catatan := c.PostForm("catatan")
 
-	var existing models.PJA
+	var existing models.Pja
 	if err := config.DB.Where("kelurahan_id = ?", kelurahanID).First(&existing).Error; err == nil {
 		c.HTML(http.StatusOK, "pja_create.html", gin.H{
 			"Title":          "Tambah PJA",
@@ -131,20 +131,20 @@ func PJAStore(c *gin.Context) {
 
 	publicPath := strings.ReplaceAll(fullPath, "\\", "/")
 
-	pja := models.PJA{
+	pja := models.Pja{
 		KelurahanID: uint(kelurahanID),
 		Dokumen:     publicPath,
 		Catatan:     catatan,
 	}
 
 	config.DB.Create(&pja)
-	c.Redirect(http.StatusFound, "/admin/pja")
+	c.Redirect(http.StatusFound, "/jadi/admin/pja")
 }
 
 // ================== EDIT FORM ==================
 func PJAEdit(c *gin.Context) {
 	id := c.Param("id")
-	var pja models.PJA
+	var pja models.Pja
 	if err := config.DB.
 		Preload("Kelurahan").
 		Preload("Kelurahan.Kecamatan").
@@ -167,7 +167,7 @@ func PJAEdit(c *gin.Context) {
 // ================== UPDATE ==================
 func PJAUpdate(c *gin.Context) {
 	id := c.Param("id")
-	var pja models.PJA
+	var pja models.Pja
 	if err := config.DB.First(&pja, id).Error; err != nil {
 		c.String(http.StatusNotFound, "Data tidak ditemukan")
 		return
@@ -176,7 +176,7 @@ func PJAUpdate(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
 
 	var count int64
-	config.DB.Model(&models.PJA{}).
+	config.DB.Model(&models.Pja{}).
 		Where("kelurahan_id = ? AND id <> ?", kelurahanID, pja.ID).
 		Count(&count)
 	if count > 0 {
@@ -237,13 +237,13 @@ func PJAUpdate(c *gin.Context) {
 	}
 
 	config.DB.Save(&pja)
-	c.Redirect(http.StatusFound, "/admin/pja")
+	c.Redirect(http.StatusFound, "/jadi/admin/pja")
 }
 
 // ================== DELETE ==================
 func PJADelete(c *gin.Context) {
 	id := c.Param("id")
-	var pja models.PJA
+	var pja models.Pja
 
 	if err := config.DB.First(&pja, id).Error; err != nil {
 		c.String(http.StatusNotFound, "Data tidak ditemukan")
@@ -258,7 +258,7 @@ func PJADelete(c *gin.Context) {
 	// hapus record
 	config.DB.Delete(&pja)
 
-	c.Redirect(http.StatusFound, "/admin/pja")
+	c.Redirect(http.StatusFound, "/jadi/admin/pja")
 }
 
 // ================== API: Autocomplete Kelurahan ==================

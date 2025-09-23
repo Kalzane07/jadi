@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 19, 2025 at 09:19 PM
+-- Generation Time: Sep 23, 2025 at 02:35 AM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.16
 
@@ -29,12 +29,12 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `kabupatens` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
   `provinsi_id` bigint UNSIGNED NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `kabupatens`
@@ -62,11 +62,11 @@ INSERT INTO `kabupatens` (`id`, `code`, `provinsi_id`, `name`, `created_at`, `up
 CREATE TABLE `kadarkums` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -76,12 +76,12 @@ CREATE TABLE `kadarkums` (
 
 CREATE TABLE `kecamatans` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
   `kabupaten_id` bigint UNSIGNED NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `kecamatans`
@@ -241,12 +241,12 @@ INSERT INTO `kecamatans` (`id`, `code`, `kabupaten_id`, `name`, `created_at`, `u
 
 CREATE TABLE `kelurahans` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
   `kecamatan_id` bigint UNSIGNED NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `kelurahans`
@@ -1851,11 +1851,29 @@ INSERT INTO `kelurahans` (`id`, `code`, `kecamatan_id`, `name`, `created_at`, `u
 CREATE TABLE `paralegals` (
   `id` bigint UNSIGNED NOT NULL,
   `posbankum_id` bigint UNSIGNED NOT NULL,
-  `nama` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `nama` longtext COLLATE utf8mb4_general_ci NOT NULL,
+  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `paralegal_kegiatans`
+--
+
+CREATE TABLE `paralegal_kegiatans` (
+  `id` int NOT NULL,
+  `judul` varchar(255) NOT NULL,
+  `deskripsi` text,
+  `tanggal` date DEFAULT NULL,
+  `lokasi` varchar(255) DEFAULT NULL,
+  `dokumen` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -1881,11 +1899,11 @@ CREATE TABLE `pjas` (
 CREATE TABLE `posbankums` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1895,11 +1913,11 @@ CREATE TABLE `posbankums` (
 
 CREATE TABLE `provinsis` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `provinsis`
@@ -1907,21 +1925,6 @@ CREATE TABLE `provinsis` (
 
 INSERT INTO `provinsis` (`id`, `code`, `name`, `created_at`, `updated_at`) VALUES
 (1, '15', 'Jambi', '2025-08-22 16:05:55.000', '2025-08-22 16:05:55.000');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `p_j_a_s`
---
-
-CREATE TABLE `p_j_a_s` (
-  `id` bigint UNSIGNED NOT NULL,
-  `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1944,7 +1947,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `password`, `role`, `created_at`, `updated_at`) VALUES
 (1, 'admin', '$2a$10$d0ePERfWnzO9yS7iV2Cfh.0VxhILqyFAiimOVHGtFGTONAEnESU2a', 'admin', '2025-09-16 06:20:49.000', NULL),
-(2, 'user', '$2a$10$d0ePERfWnzO9yS7iV2Cfh.0VxhILqyFAiimOVHGtFGTONAEnESU2a', 'user', '2025-09-16 06:20:49.000', NULL);
+(2, 'user', '$2a$10$WRK4PqsDfErcJkhQM7iZJu4Vtw9wRdBUdySWr2.Ng9Y5KP.x1TH1i', 'user', '2025-09-16 06:20:49.000', NULL);
 
 --
 -- Indexes for dumped tables
@@ -1989,6 +1992,12 @@ ALTER TABLE `paralegals`
   ADD KEY `paralegals_posbankum_id_foreign` (`posbankum_id`);
 
 --
+-- Indexes for table `paralegal_kegiatans`
+--
+ALTER TABLE `paralegal_kegiatans`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `pjas`
 --
 ALTER TABLE `pjas`
@@ -2008,12 +2017,6 @@ ALTER TABLE `posbankums`
 ALTER TABLE `provinsis`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uni_provinsis_code` (`code`);
-
---
--- Indexes for table `p_j_a_s`
---
-ALTER TABLE `p_j_a_s`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `users`
@@ -2036,7 +2039,7 @@ ALTER TABLE `kabupatens`
 -- AUTO_INCREMENT for table `kadarkums`
 --
 ALTER TABLE `kadarkums`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT for table `kecamatans`
@@ -2054,31 +2057,31 @@ ALTER TABLE `kelurahans`
 -- AUTO_INCREMENT for table `paralegals`
 --
 ALTER TABLE `paralegals`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT for table `paralegal_kegiatans`
+--
+ALTER TABLE `paralegal_kegiatans`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `pjas`
 --
 ALTER TABLE `pjas`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `posbankums`
 --
 ALTER TABLE `posbankums`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
 
 --
 -- AUTO_INCREMENT for table `provinsis`
 --
 ALTER TABLE `provinsis`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `p_j_a_s`
---
-ALTER TABLE `p_j_a_s`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `users`

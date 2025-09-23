@@ -20,7 +20,7 @@ func LandingPage(c *gin.Context) {
 	// Hitung total masing-masing tabel
 	db.Model(&models.Posbankum{}).Count(&totalPosbankum)
 	db.Model(&models.Kadarkum{}).Count(&totalKadarkum)
-	db.Model(&models.PJA{}).Count(&totalPja)
+	db.Model(&models.Pja{}).Count(&totalPja)
 	db.Model(&models.Paralegal{}).Count(&totalParalegal)
 
 	// Kirim ke template

@@ -140,7 +140,7 @@ func KadarkumStore(c *gin.Context) {
 	}
 
 	config.DB.Create(&kadarkum)
-	c.Redirect(http.StatusFound, "/admin/kadarkum")
+	c.Redirect(http.StatusFound, "/jadi/admin/kadarkum")
 }
 
 // ================== EDIT FORM ==================
@@ -238,7 +238,7 @@ func KadarkumUpdate(c *gin.Context) {
 	}
 
 	config.DB.Save(&kadarkum)
-	c.Redirect(http.StatusFound, "/admin/kadarkum")
+	c.Redirect(http.StatusFound, "/jadi/admin/kadarkum")
 }
 
 // ================== DELETE ==================
@@ -257,5 +257,5 @@ func KadarkumDelete(c *gin.Context) {
 	}
 
 	config.DB.Delete(&kadarkum)
-	c.Redirect(http.StatusFound, "/admin/kadarkum")
+	c.Redirect(http.StatusFound, "/jadi/admin/kadarkum")
 }

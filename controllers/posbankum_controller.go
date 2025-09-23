@@ -143,7 +143,7 @@ func PosbankumStore(c *gin.Context) {
 	}
 
 	config.DB.Create(&posbankum)
-	c.Redirect(http.StatusFound, "/admin/posbankum")
+	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
 }
 
 // ================== EDIT FORM ==================
@@ -243,7 +243,7 @@ func PosbankumUpdate(c *gin.Context) {
 	}
 
 	config.DB.Save(&posbankum)
-	c.Redirect(http.StatusFound, "/admin/posbankum")
+	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
 }
 
 // ================== DELETE ==================
@@ -264,7 +264,7 @@ func PosbankumDelete(c *gin.Context) {
 	// hapus record dari DB
 	config.DB.Delete(&posbankum)
 
-	c.Redirect(http.StatusFound, "/admin/posbankum")
+	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
 }
 
 // ================== API: Autocomplete Kelurahan ==================

@@ -161,7 +161,7 @@ func ParalegalStore(c *gin.Context) {
 	}
 
 	config.DB.Create(&paralegal)
-	c.Redirect(http.StatusFound, "/admin/paralegal")
+	c.Redirect(http.StatusFound, "/jadi/admin/paralegal")
 }
 
 // ================== EDIT FORM ==================
@@ -249,7 +249,7 @@ func ParalegalUpdate(c *gin.Context) {
 	}
 
 	config.DB.Save(&paralegal)
-	c.Redirect(http.StatusFound, "/admin/paralegal")
+	c.Redirect(http.StatusFound, "/jadi/admin/paralegal")
 }
 
 // ================== DELETE ==================
@@ -270,5 +270,5 @@ func ParalegalDelete(c *gin.Context) {
 	// hapus record
 	config.DB.Delete(&paralegal)
 
-	c.Redirect(http.StatusFound, "/admin/paralegal")
+	c.Redirect(http.StatusFound, "/jadi/admin/paralegal")
 }

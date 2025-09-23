@@ -7,18 +7,18 @@ import (
 )
 
 // SetupRoutes untuk semua routing aplikasi
-func SetupRoutes(r *gin.Engine) {
-	// ================= LANDING PAGE & STATISTIK (NEW) =================
-	r.GET("/", controllers.LandingPage)
-	//	r.GET("/statistik-kabupaten", controllers.StatistikPageByKabupaten) // Rute baru untuk statistik per kabupaten
+func SetupRoutes(jadi *gin.RouterGroup) {
+	// ================= LANDING PAGE & STATISTIK =================
+	jadi.GET("/", controllers.LandingPage)
 
 	// ================= AUTH =================
-	r.GET("/login", controllers.ShowLogin)
-	r.POST("/login", controllers.DoLogin)
-	r.GET("/logout", controllers.Logout)
+	jadi.GET("/login", controllers.ShowLogin)
+	jadi.POST("/login", controllers.DoLogin)
+	jadi.GET("/logout", controllers.Logout)
 
-	// ================= ROUTES ADMIN =================
-	admin := r.Group("/admin")
+	// ================= ROUTES ADMIN (UNTUK HALAMAN WEB) =================
+	// Grup ini khusus untuk halaman-halaman yang merender HTML dan butuh role "admin".
+	admin := jadi.Group("/admin")
 	admin.Use(controllers.AuthRequired(), controllers.RoleRequired("admin"))
 	{
 		// ================= DASHBOARD =================
@@ -61,17 +61,25 @@ func SetupRoutes(r *gin.Engine) {
 		admin.GET("/kabupaten", controllers.KabupatenIndex)
 		admin.GET("/kecamatan", controllers.KecamatanIndex)
 		admin.GET("/kelurahan", controllers.KelurahanIndex)
+	}
 
-		// ================= API (untuk autocomplete) =================
-		admin.GET("/api/kelurahan/search", controllers.KelurahanSearch)
-		admin.GET("/api/posbankum/search", controllers.PosbankumSearch) // 🔹 baru ditambah
+	// ================= ROUTES API (UNTUK DATA JSON) =================
+	// Grup ini khusus untuk endpoint API yang mengembalikan data JSON.
+	// Cukup pakai AuthRequired() saja, karena tidak merender halaman admin.
+	api := jadi.Group("/api")
+	api.Use(controllers.AuthRequired())
+	{
+		api.GET("/kelurahan/search", controllers.KelurahanSearch)
+		api.GET("/posbankum/search", controllers.PosbankumSearch)
+		api.GET("/kadarkum/search", controllers.PosbankumSearch)
+		api.GET("/pja/search", controllers.PosbankumSearch)
+		api.GET("/paralegal/search", controllers.PosbankumSearch)
 	}
 
 	// ================= ROUTES USER =================
-	user := r.Group("/user")
+	user := jadi.Group("/user")
 	user.Use(controllers.AuthRequired(), controllers.RoleRequired("user"))
 	{
-		// 🔹 Semua data ditampilkan dalam 1 halaman
 		user.GET("/", controllers.UserDashboard)
 	}
 }
