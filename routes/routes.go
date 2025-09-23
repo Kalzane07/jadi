@@ -90,4 +90,15 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	{
 		user.GET("/", controllers.UserDashboard)
 	}
+	// ================== DOKUMEN YANG DIPROTEKSI ==================
+	// Grup ini khusus untuk menyajikan file yang butuh login
+	// Kita hanya perlu AuthRequired(), karena admin dan user biasa boleh melihat file
+	// selama mereka sudah login.
+	dokumen := jadi.Group("/dokumen")
+	dokumen.Use(controllers.AuthRequired())
+	{
+		// :tipe akan menjadi nama folder (posbankum, paralegal, dll)
+		// :filename akan menjadi nama file (uuid-nya.pdf)
+		dokumen.GET("/:tipe/:filename", controllers.ServeDokumen)
+	}
 }

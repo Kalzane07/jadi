@@ -82,7 +82,7 @@ color: #fff;
                             File PDF, maksimal 10MB. <br>
                             Dokumen sekarang: 
                             {{ if .Kadarkum.Dokumen }}
-                                <a href="/{{ .Kadarkum.Dokumen }}" target="_blank">📄 Lihat PDF</a>
+                                <a href="{{ .Kadarkum.Dokumen | formatDokumenURL }}" target="_blank">Lihat Dokumen</a>
                             {{ else }}
                                 <span class="text-muted">Belum ada</span>
                             {{ end }}

@@ -18,6 +18,7 @@ import (
 )
 
 // ================== INDEX ==================
+// PJAIndex menangani tampilan daftar data PJA.
 func PJAIndex(c *gin.Context) {
 	search := c.Query("q")
 
@@ -63,6 +64,7 @@ func PJAIndex(c *gin.Context) {
 }
 
 // ================== CREATE FORM ==================
+// PJACreate menampilkan form untuk membuat data PJA baru.
 func PJACreate(c *gin.Context) {
 	c.HTML(http.StatusOK, "pja_create.html", gin.H{
 		"Title": "Tambah PJA",
@@ -70,10 +72,13 @@ func PJACreate(c *gin.Context) {
 }
 
 // ================== STORE ==================
+// PJAStore menangani pengiriman form untuk membuat PJA.
 func PJAStore(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
 	catatan := c.PostForm("catatan")
 
+	// PENTING: Log 'record not found' di sini adalah normal jika data belum ada.
+	// Ini hanya memeriksa duplikasi.
 	var existing models.PJA
 	if err := config.DB.Where("kelurahan_id = ?", kelurahanID).First(&existing).Error; err == nil {
 		c.HTML(http.StatusOK, "pja_create.html", gin.H{
@@ -84,6 +89,8 @@ func PJAStore(c *gin.Context) {
 		return
 	}
 
+	// PENTING: Pastikan Anda selalu mengunggah file. Jika tidak,
+	// program akan kembali ke form dengan pesan error.
 	file, err := c.FormFile("dokumen")
 	if err != nil {
 		c.HTML(http.StatusOK, "pja_create.html", gin.H{
@@ -142,6 +149,7 @@ func PJAStore(c *gin.Context) {
 }
 
 // ================== EDIT FORM ==================
+// PJAEdit menampilkan form untuk mengedit PJA.
 func PJAEdit(c *gin.Context) {
 	id := c.Param("id")
 	var pja models.PJA
@@ -165,6 +173,7 @@ func PJAEdit(c *gin.Context) {
 }
 
 // ================== UPDATE ==================
+// PJAUpdate menangani pengiriman form untuk memperbarui PJA.
 func PJAUpdate(c *gin.Context) {
 	id := c.Param("id")
 	var pja models.PJA
@@ -241,6 +250,7 @@ func PJAUpdate(c *gin.Context) {
 }
 
 // ================== DELETE ==================
+// PJADelete menangani penghapusan data PJA.
 func PJADelete(c *gin.Context) {
 	id := c.Param("id")
 	var pja models.PJA
@@ -262,6 +272,7 @@ func PJADelete(c *gin.Context) {
 }
 
 // ================== API: Autocomplete Kelurahan ==================
+// PJAKelurahanSearch menyediakan data untuk fitur pencarian autocomplete.
 func PJAKelurahanSearch(c *gin.Context) {
 	term := c.Query("term")
 	if term == "" {

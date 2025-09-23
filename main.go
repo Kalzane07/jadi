@@ -8,6 +8,7 @@ import (
 	"go-admin/routes"
 	"html/template"
 	"log"
+	"net/http"
 	"reflect"
 	"strings"
 	"time"
@@ -17,7 +18,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ============ helper functions untuk template ============
+// ============ HELPER FUNCTIONS LAMA ANDA (TETAP ADA) ============
+
 func add(x, y int) int { return x + y }
 func sub(x, y int) int { return x - y }
 func iter(count int) []int {
@@ -68,62 +70,103 @@ func toJSON(v interface{}) template.JS {
 	return template.JS(a)
 }
 
-func main() {
-	// ============ SET GIN MODE KE RELEASE ============
-	gin.SetMode(gin.ReleaseMode)
+// ============ HELPER FUNCTIONS BARU (UNTUK DOKUMEN AMAN) ============
 
+func formatDokumenURL(path string) string {
+	if path == "" {
+		return "#"
+	}
+	parts := strings.Split(path, "/")
+	if len(parts) != 3 {
+		log.Printf("Format path dokumen tidak valid: %s", path)
+		return "#"
+	}
+	return fmt.Sprintf("/jadi/dokumen/%s/%s", parts[1], parts[2])
+}
+
+func renderDokumenLinks(dokumenData interface{}) template.HTML {
+	if dokumenData == nil {
+		return ""
+	}
+	if reflect.TypeOf(dokumenData).Kind() == reflect.Slice {
+		slice := reflect.ValueOf(dokumenData)
+		var links strings.Builder
+		for i := 0; i < slice.Len(); i++ {
+			path, ok := slice.Index(i).Interface().(string)
+			if !ok {
+				continue
+			}
+			url := formatDokumenURL(path)
+			linkHTML := fmt.Sprintf(
+				`<a href="%s" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors mr-1 mb-1">
+					<i class="fas fa-file-alt"></i> Dokumen
+				</a>`, url)
+			links.WriteString(linkHTML)
+		}
+		return template.HTML(links.String())
+	}
+	if path, ok := dokumenData.(string); ok && path != "" {
+		url := formatDokumenURL(path)
+		linkHTML := fmt.Sprintf(
+			`<a href="%s" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
+				<i class="fas fa-file-alt"></i> Dokumen
+			</a>`, url)
+		return template.HTML(linkHTML)
+	}
+	return ""
+}
+
+func main() {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	//r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
 	if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
-		log.Fatal("❌ Gagal set trusted proxies:", err)
+		log.Fatal("Gagal set trusted proxies:", err)
 	}
 
-	// load HTML templates + register functions
 	funcMap := template.FuncMap{
-		"add":              add,
-		"sub":              sub,
-		"iter":             iter,
-		"now":              now,
-		"calcPersen":       calcPersen,
-		"calcTotal":        calcTotal,
-		"totalTercapai":    totalTercapai,
-		"totalKeseluruhan": totalKeseluruhan,
-		"isSlice":          isSlice,
-		"hasPrefix":        strings.HasPrefix,
-		"hasSuffix":        strings.HasSuffix,
-		"toJSON":           toJSON,
+		"add":                add,
+		"sub":                sub,
+		"iter":               iter,
+		"now":                now,
+		"calcPersen":         calcPersen,
+		"calcTotal":          calcTotal,
+		"totalTercapai":      totalTercapai,
+		"totalKeseluruhan":   totalKeseluruhan,
+		"isSlice":            isSlice,
+		"toJSON":             toJSON,
+		"hasPrefix":          strings.HasPrefix,
+		"hasSuffix":          strings.HasSuffix,
+		"formatDokumenURL":   formatDokumenURL,
+		"renderDokumenLinks": renderDokumenLinks,
 	}
 	r.SetFuncMap(funcMap)
 	r.LoadHTMLGlob("templates/*")
 
-	// session setup
-	store := cookie.NewStore([]byte("super-secret-key"))
+	// Session setup
+	// Kunci sesi sekarang di hardcode untuk menghindari error variabel lingkungan.
+	sessionKey := "kunci-rahasia-anda"
+	store := cookie.NewStore([]byte(sessionKey))
 	store.Options(sessions.Options{
 		Path:     "/",
 		MaxAge:   3600 * 8,
 		HttpOnly: true,
+		Secure:   gin.Mode() == gin.ReleaseMode,
+		SameSite: http.SameSiteLaxMode,
 	})
 	r.Use(sessions.Sessions("mysession", store))
 
-	// ============ CONNECT DATABASE ============
 	config.ConnectDB()
 
-	// ============ SETUP ROUTES ============
 	jadi := r.Group("/jadi")
 	{
-		// route app
 		routes.SetupRoutes(jadi)
-
-		// serve static files & uploads di bawah /jadi
 		jadi.Static("/static", "./static")
-		jadi.Static("/uploads", "./uploads")
 	}
 
-	// run server di port 8080
 	fmt.Println("✅ Server berjalan di http://localhost:8080/jadi")
 	if err := r.Run(":8080"); err != nil {
-		log.Fatal("❌ Gagal menjalankan server:", err)
+		log.Fatal("Gagal menjalankan server:", err)
 	}
 }

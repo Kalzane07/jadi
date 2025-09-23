@@ -109,7 +109,7 @@
                             <td class="py-3 px-4">{{ $k.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
                             <td class="py-3 px-4">
                                 {{ if $k.Dokumen }}
-                                <a href="/jadi/{{ $k.Dokumen }}" target="_blank" class="text-blue-600 hover:underline font-medium">📄 Lihat PDF</a>
+                                <a href="{{ .Dokumen | formatDokumenURL }}" target="_blank">Lihat Dokumen</a>
                                 {{ else }}
                                 <span class="text-gray-400">Belum ada</span>
                                 {{ end }}
