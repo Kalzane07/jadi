@@ -111,7 +111,7 @@ func main() {
 	r.Use(gin.Recovery())
 
 	// ✅ Menambahkan logger middleware Gin untuk menampilkan detail setiap permintaan.
-	r.Use(gin.Logger())
+	// r.Use(gin.Logger())
 
 	if err := r.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		log.Fatal("Gagal set trusted proxies:", err)
