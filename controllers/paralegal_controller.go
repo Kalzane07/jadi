@@ -1,19 +1,17 @@
 package controllers
 
 import (
-	"fmt"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"go-admin/config"
 	"go-admin/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -91,11 +89,11 @@ func PosbankumSearch(c *gin.Context) {
 
 	query := config.DB.Table("posbankums").
 		Select(`
-            posbankums.id,
-            CONCAT(kelurahans.name, " - ", kecamatans.name, " - ", kabupatens.name) as text,
-            kelurahans.name as kelurahan,
-            kecamatans.name as kecamatan,
-            kabupatens.name as kabupaten`).
+			posbankums.id,
+			CONCAT(kelurahans.name, " - ", kecamatans.name, " - ", kabupatens.name) as text,
+			kelurahans.name as kelurahan,
+			kecamatans.name as kecamatan,
+			kabupatens.name as kabupaten`).
 		Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").
 		Joins("JOIN kecamatans ON kecamatans.id = kelurahans.kecamatan_id").
 		Joins("JOIN kabupatens ON kabupatens.id = kecamatans.kabupaten_id")
@@ -143,8 +141,9 @@ func ParalegalStore(c *gin.Context) {
 		uploadPath := "uploads/paralegal"
 		os.MkdirAll(uploadPath, os.ModePerm)
 
+		// generate nama file unik menggunakan uuid
 		ext := filepath.Ext(file.Filename)
-		newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
+		newName := uuid.New().String() + ext
 		fullPath := filepath.Join(uploadPath, newName)
 
 		if err := c.SaveUploadedFile(file, fullPath); err != nil {
@@ -252,8 +251,9 @@ func ParalegalUpdate(c *gin.Context) {
 		uploadPath := "uploads/paralegal"
 		os.MkdirAll(uploadPath, os.ModePerm)
 
+		// generate nama file unik menggunakan uuid
 		ext := filepath.Ext(file.Filename)
-		newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
+		newName := uuid.New().String() + ext
 		newPath := filepath.Join(uploadPath, newName)
 
 		if err := c.SaveUploadedFile(file, newPath); err != nil {
