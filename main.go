@@ -122,7 +122,7 @@ func main() {
 
 		// serve static files & uploads di bawah /jadi
 		jadi.Static("/static", "./static")
-		jadi.Static("/uploads", "./uploads")
+
 	}
 	if err := r.Run(":8182"); err != nil {
 		log.Fatal("Gagal menjalankan server:", err)
