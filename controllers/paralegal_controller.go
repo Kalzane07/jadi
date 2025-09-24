@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"go-admin/config"
 	"go-admin/models"
@@ -93,7 +96,7 @@ func ParalegalStore(c *gin.Context) {
 		return
 	}
 
-	if file.Header.Get("Content-Type") != "application/pdf" {
+	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
 		c.HTML(http.StatusBadRequest, "paralegal_create.html", gin.H{
 			"Title":     "Tambah Paralegal",
 			"ErrorFile": "❌ File harus berupa PDF",
@@ -102,16 +105,37 @@ func ParalegalStore(c *gin.Context) {
 		return
 	}
 
-	f, _ := file.Open()
-	defer f.Close()
+	src, err := file.Open()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Gagal membuka file")
+		return
+	}
+	defer src.Close()
+
+	// cek magic bytes PDF
+	buf := make([]byte, 5)
+	if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+		c.HTML(http.StatusBadRequest, "paralegal_create.html", gin.H{
+			"Title":     "Tambah Paralegal",
+			"ErrorFile": "❌ File tidak valid, harus PDF asli",
+			"Nama":      nama,
+		})
+		return
+	}
+	src.Seek(0, io.SeekStart)
+
 	fileBytes := make([]byte, file.Size)
-	f.Read(fileBytes)
+	_, err = src.Read(fileBytes)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Gagal membaca file")
+		return
+	}
 
 	paralegal := models.Paralegal{
 		PosbankumID: uint(posbankumID),
 		Nama:        nama,
 		Dokumen:     fileBytes,
-		ContentType: file.Header.Get("Content-Type"),
+		ContentType: "application/pdf",
 	}
 
 	if err := config.DB.Create(&paralegal).Error; err != nil {
@@ -174,7 +198,7 @@ func ParalegalUpdate(c *gin.Context) {
 			return
 		}
 
-		if file.Header.Get("Content-Type") != "application/pdf" {
+		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
 			c.HTML(http.StatusBadRequest, "paralegal_edit.html", gin.H{
 				"Title":     "Edit Paralegal",
 				"Paralegal": paralegal,
@@ -183,13 +207,33 @@ func ParalegalUpdate(c *gin.Context) {
 			return
 		}
 
-		f, _ := file.Open()
-		defer f.Close()
+		src, err := file.Open()
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Gagal membuka file baru")
+			return
+		}
+		defer src.Close()
+
+		buf := make([]byte, 5)
+		if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+			c.HTML(http.StatusBadRequest, "paralegal_edit.html", gin.H{
+				"Title":     "Edit Paralegal",
+				"Paralegal": paralegal,
+				"ErrorFile": "❌ File tidak valid, harus PDF asli",
+			})
+			return
+		}
+		src.Seek(0, io.SeekStart)
+
 		fileBytes := make([]byte, file.Size)
-		f.Read(fileBytes)
+		_, err = src.Read(fileBytes)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Gagal membaca file baru")
+			return
+		}
 
 		paralegal.Dokumen = fileBytes
-		paralegal.ContentType = file.Header.Get("Content-Type")
+		paralegal.ContentType = "application/pdf"
 	}
 
 	if err := config.DB.Save(&paralegal).Error; err != nil {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -101,7 +102,8 @@ func PJAStore(c *gin.Context) {
 		return
 	}
 
-	if file.Size > 10*1024*1024 { // max 10MB
+	// validasi ukuran
+	if file.Size > 10*1024*1024 {
 		c.HTML(http.StatusBadRequest, "pja_create.html", gin.H{
 			"Title":     "Tambah PJA",
 			"ErrorFile": "❌ Ukuran file maksimal 10MB",
@@ -110,6 +112,7 @@ func PJAStore(c *gin.Context) {
 		return
 	}
 
+	// validasi ekstensi
 	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
 		c.HTML(http.StatusBadRequest, "pja_create.html", gin.H{
 			"Title":     "Tambah PJA",
@@ -119,16 +122,29 @@ func PJAStore(c *gin.Context) {
 		return
 	}
 
-	// baca file ke []byte
-	fileContent, err := file.Open()
+	// buka file
+	src, err := file.Open()
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Gagal membuka file")
 		return
 	}
-	defer fileContent.Close()
+	defer src.Close()
 
+	// cek magic bytes PDF (%PDF-)
+	buf := make([]byte, 5)
+	if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+		c.HTML(http.StatusBadRequest, "pja_create.html", gin.H{
+			"Title":     "Tambah PJA",
+			"ErrorFile": "❌ File tidak valid, harus PDF asli",
+			"Catatan":   catatan,
+		})
+		return
+	}
+	src.Seek(0, io.SeekStart)
+
+	// baca semua isi file
 	data := make([]byte, file.Size)
-	_, err = fileContent.Read(data)
+	_, err = src.Read(data)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Gagal membaca file")
 		return
@@ -224,15 +240,23 @@ func PJAUpdate(c *gin.Context) {
 			return
 		}
 
-		fileContent, err := file.Open()
+		src, err := file.Open()
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Gagal membuka file baru")
 			return
 		}
-		defer fileContent.Close()
+		defer src.Close()
+
+		// cek magic bytes PDF
+		buf := make([]byte, 5)
+		if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+			c.String(http.StatusBadRequest, "❌ File tidak valid, harus PDF asli")
+			return
+		}
+		src.Seek(0, io.SeekStart)
 
 		data := make([]byte, file.Size)
-		_, err = fileContent.Read(data)
+		_, err = src.Read(data)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Gagal membaca file baru")
 			return

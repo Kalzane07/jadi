@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"go-admin/config"
@@ -48,7 +50,6 @@ func PosbankumIndex(c *gin.Context) {
 
 	totalPages := int((total + int64(limit) - 1) / int64(limit))
 
-	// Mengambil username dari session untuk ditampilkan di navbar
 	session := sessions.Default(c)
 	user := session.Get("user")
 
@@ -98,7 +99,8 @@ func PosbankumStore(c *gin.Context) {
 		return
 	}
 
-	if file.Size > 10*1024*1024 { // 10MB
+	// ✅ Validasi ukuran
+	if file.Size > 10*1024*1024 {
 		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
 			"Title":     "Tambah Posbankum",
 			"ErrorFile": "Ukuran file maksimal 10MB.",
@@ -107,11 +109,11 @@ func PosbankumStore(c *gin.Context) {
 		return
 	}
 
-	fileType := file.Header.Get("Content-Type")
-	if fileType != "application/pdf" {
+	// ✅ Validasi ekstensi
+	if filepath.Ext(file.Filename) != ".pdf" {
 		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
 			"Title":     "Tambah Posbankum",
-			"ErrorFile": "File harus berformat PDF.",
+			"ErrorFile": "Ekstensi file harus .pdf",
 			"Catatan":   catatan,
 		})
 		return
@@ -125,6 +127,18 @@ func PosbankumStore(c *gin.Context) {
 	}
 	defer src.Close()
 
+	// ✅ Validasi magic bytes PDF
+	buf := make([]byte, 5)
+	if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
+			"Title":     "Tambah Posbankum",
+			"ErrorFile": "File tidak valid, harus PDF asli.",
+			"Catatan":   catatan,
+		})
+		return
+	}
+	src.Seek(0, io.SeekStart)
+
 	fileBytes, err := ioutil.ReadAll(src)
 	if err != nil {
 		log.Println("Gagal membaca file:", err)
@@ -135,7 +149,7 @@ func PosbankumStore(c *gin.Context) {
 	posbankum := models.Posbankum{
 		KelurahanID: uint(kelurahanID),
 		Dokumen:     fileBytes,
-		ContentType: fileType,
+		ContentType: "application/pdf",
 		Catatan:     catatan,
 	}
 
@@ -211,7 +225,7 @@ func PosbankumUpdate(c *gin.Context) {
 	}
 
 	file, err := c.FormFile("dokumen")
-	if err == nil { // Ada file baru yang diupload
+	if err == nil { // ada file baru
 		if file.Size > 10*1024*1024 {
 			session := sessions.Default(c)
 			user := session.Get("user")
@@ -223,14 +237,14 @@ func PosbankumUpdate(c *gin.Context) {
 			})
 			return
 		}
-		fileType := file.Header.Get("Content-Type")
-		if fileType != "application/pdf" {
+
+		if filepath.Ext(file.Filename) != ".pdf" {
 			session := sessions.Default(c)
 			user := session.Get("user")
 			c.HTML(http.StatusBadRequest, "posbankum_edit.html", gin.H{
 				"Title":     "Edit Posbankum",
 				"Posbankum": posbankum,
-				"ErrorFile": "File harus berformat PDF.",
+				"ErrorFile": "Ekstensi file harus .pdf",
 				"user":      user,
 			})
 			return
@@ -244,6 +258,20 @@ func PosbankumUpdate(c *gin.Context) {
 		}
 		defer src.Close()
 
+		buf := make([]byte, 5)
+		if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+			session := sessions.Default(c)
+			user := session.Get("user")
+			c.HTML(http.StatusBadRequest, "posbankum_edit.html", gin.H{
+				"Title":     "Edit Posbankum",
+				"Posbankum": posbankum,
+				"ErrorFile": "File tidak valid, harus PDF asli.",
+				"user":      user,
+			})
+			return
+		}
+		src.Seek(0, io.SeekStart)
+
 		fileBytes, err := ioutil.ReadAll(src)
 		if err != nil {
 			log.Println("Gagal membaca file:", err)
@@ -251,9 +279,8 @@ func PosbankumUpdate(c *gin.Context) {
 			return
 		}
 
-		// ✅ Update field dokumen dan tipe konten dengan data file baru
 		posbankum.Dokumen = fileBytes
-		posbankum.ContentType = fileType
+		posbankum.ContentType = "application/pdf"
 	}
 
 	if err := config.DB.Save(&posbankum).Error; err != nil {
@@ -273,7 +300,6 @@ func PosbankumDelete(c *gin.Context) {
 		return
 	}
 
-	// ✅ Cukup hapus record dari database, tidak ada file yang perlu dihapus dari sistem file
 	if err := config.DB.Delete(&posbankum).Error; err != nil {
 		c.String(http.StatusInternalServerError, "Gagal menghapus data dari database")
 		return
@@ -293,7 +319,6 @@ func PosbankumSearch(c *gin.Context) {
 		Kabupaten string `json:"kabupaten"`
 	}
 
-	// Join biar bisa dapet nama wilayah
 	err := config.DB.Table("posbankums").
 		Select("posbankums.id, kelurahans.name AS kelurahan, kecamatans.name AS kecamatan, kabupatens.name AS kabupaten").
 		Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").

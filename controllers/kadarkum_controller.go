@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"go-admin/config"
@@ -106,24 +108,38 @@ func KadarkumStore(c *gin.Context) {
 		return
 	}
 
-	if file.Header.Get("Content-Type") != "application/pdf" {
+	// ✅ cek ekstensi
+	if filepath.Ext(file.Filename) != ".pdf" {
 		c.HTML(http.StatusBadRequest, "kadarkum_create.html", gin.H{
 			"Title":     "Tambah Kadarkum",
-			"ErrorFile": "❌ File harus berupa PDF",
+			"ErrorFile": "❌ Ekstensi file harus .pdf",
 			"Catatan":   catatan,
 		})
 		return
 	}
 
-	f, _ := file.Open()
-	defer f.Close()
+	src, _ := file.Open()
+	defer src.Close()
+
+	// ✅ cek magic bytes (%PDF-)
+	buf := make([]byte, 5)
+	if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+		c.HTML(http.StatusBadRequest, "kadarkum_create.html", gin.H{
+			"Title":     "Tambah Kadarkum",
+			"ErrorFile": "❌ File bukan PDF valid",
+			"Catatan":   catatan,
+		})
+		return
+	}
+	src.Seek(0, io.SeekStart)
+
 	fileBytes := make([]byte, file.Size)
-	f.Read(fileBytes)
+	src.Read(fileBytes)
 
 	kadarkum := models.Kadarkum{
 		KelurahanID: uint(kelurahanID),
 		Dokumen:     fileBytes,
-		ContentType: file.Header.Get("Content-Type"),
+		ContentType: "application/pdf", // force
 		Catatan:     catatan,
 	}
 
@@ -174,6 +190,7 @@ func KadarkumUpdate(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
 	catatan := c.PostForm("catatan")
 
+	// cek duplikasi
 	var count int64
 	config.DB.Model(&models.Kadarkum{}).
 		Where("kelurahan_id = ? AND id <> ?", kelurahanID, kadarkum.ID).
@@ -201,22 +218,34 @@ func KadarkumUpdate(c *gin.Context) {
 			return
 		}
 
-		if file.Header.Get("Content-Type") != "application/pdf" {
+		if filepath.Ext(file.Filename) != ".pdf" {
 			c.HTML(http.StatusBadRequest, "kadarkum_edit.html", gin.H{
 				"Title":     "Edit Kadarkum",
 				"Kadarkum":  kadarkum,
-				"ErrorFile": "❌ File harus berupa PDF",
+				"ErrorFile": "❌ Ekstensi file harus .pdf",
 			})
 			return
 		}
 
-		f, _ := file.Open()
-		defer f.Close()
+		src, _ := file.Open()
+		defer src.Close()
+
+		buf := make([]byte, 5)
+		if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
+			c.HTML(http.StatusBadRequest, "kadarkum_edit.html", gin.H{
+				"Title":     "Edit Kadarkum",
+				"Kadarkum":  kadarkum,
+				"ErrorFile": "❌ File bukan PDF valid",
+			})
+			return
+		}
+		src.Seek(0, io.SeekStart)
+
 		fileBytes := make([]byte, file.Size)
-		f.Read(fileBytes)
+		src.Read(fileBytes)
 
 		kadarkum.Dokumen = fileBytes
-		kadarkum.ContentType = file.Header.Get("Content-Type")
+		kadarkum.ContentType = "application/pdf"
 	}
 
 	if err := config.DB.Save(&kadarkum).Error; err != nil {
