@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>{{ .Title }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; }
+        body {
+            font-family: Arial, sans-serif;
+        }
+
         .sidebar {
             height: 100vh;
             width: 240px;
@@ -16,29 +20,53 @@
             background-color: #212529;
             padding-top: 60px;
         }
+
         .sidebar a {
             padding: 12px 20px;
             display: block;
             color: #adb5bd;
             text-decoration: none;
         }
+
         .sidebar a:hover {
             background-color: #495057;
             color: #fff;
         }
-        .sidebar .submenu { padding-left: 30px; font-size: 14px; }
-        .content { margin-left: 240px; padding: 20px; }
-        .navbar { position: fixed; top: 0; left: 240px; right: 0; z-index: 1030; }
+
+        .sidebar .submenu {
+            padding-left: 30px;
+            font-size: 14px;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 240px;
+            right: 0;
+            z-index: 1030;
+        }
     </style>
 </head>
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
         <h4 class="text-light text-center mb-4">Admin Panel</h4>
-        <a href="/jadi/admin">🏠 Dashboard</a>
-        <a href="/jadi/admin/users" class="active">👤 Users</a>
+        <a class="nav-link" href="{{ .BaseHref }}/admin">🏠 Dashboard</a>
+        <a class="nav-link" href="{{ .BaseHref }}/admin/posbankum">📂 Posbankum</a>
+        <a class="nav-link" href="{{ .BaseHref }}/admin/paralegal">👥 Paralegal</a>
+        <a class="nav-link" href="{{ .BaseHref }}/admin/kadarkum">📘 Kadarkum</a>
+        <a class="nav-link" href="{{ .BaseHref }}/admin/pja">📑 PJA</a>
         <hr class="text-light">
-        <a href="/jadi/logout">🚪 Logout</a>
+        <div class="px-3 text-light">Master Wilayah</div>
+        <a href="{{ .BaseHref }}/admin/users" class="submenu active">👤 Users</a>
+        <hr class="text-light">
+        <a href="{{ .BaseHref }}/logout">🚪 Logout</a>
     </div>
 
     <!-- Navbar -->
@@ -57,16 +85,18 @@
                     <h5 class="mb-0">➕ Tambah User</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="/jadi/admin/users/store" class="needs-validation" novalidate>
+                    <form method="POST" action="{{ .BaseHref }}/admin/users/store" class="needs-validation" novalidate>
                         <!-- Username -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Username</label>
-                            <input type="text" name="username" class="form-control {{ if .ErrorUsername }}is-invalid{{ end }}" value="{{ .Username }}" required>
+                            <input type="text" name="username"
+                                class="form-control {{ if .ErrorUsername }}is-invalid{{ end }}" value="{{ .Username }}"
+                                required>
                             <div class="invalid-feedback">
                                 {{ if .ErrorUsername }}
-                                    {{ .ErrorUsername }}
+                                {{ .ErrorUsername }}
                                 {{ else }}
-                                    Username wajib diisi.
+                                Username wajib diisi.
                                 {{ end }}
                             </div>
                         </div>
@@ -74,12 +104,13 @@
                         <!-- Password -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Password</label>
-                            <input type="password" name="password" class="form-control {{ if .ErrorPassword }}is-invalid{{ end }}" required>
+                            <input type="password" name="password"
+                                class="form-control {{ if .ErrorPassword }}is-invalid{{ end }}" required>
                             <div class="invalid-feedback">
                                 {{ if .ErrorPassword }}
-                                    {{ .ErrorPassword }}
+                                {{ .ErrorPassword }}
                                 {{ else }}
-                                    Password wajib diisi.
+                                Password wajib diisi.
                                 {{ end }}
                             </div>
                         </div>
@@ -94,16 +125,16 @@
                             </select>
                             <div class="invalid-feedback">
                                 {{ if .ErrorRole }}
-                                    {{ .ErrorRole }}
+                                {{ .ErrorRole }}
                                 {{ else }}
-                                    Role wajib dipilih.
+                                Role wajib dipilih.
                                 {{ end }}
                             </div>
                         </div>
 
                         <!-- Tombol -->
                         <div class="d-flex justify-content-end">
-                            <a href="/jadi/admin/users" class="btn btn-secondary me-2">← Batal</a>
+                            <a href="{{ .BaseHref }}/admin/users" class="btn btn-secondary me-2">← Batal</a>
                             <button type="submit" class="btn btn-success">💾 Simpan</button>
                         </div>
                     </form>
@@ -130,4 +161,5 @@
         })()
     </script>
 </body>
+
 </html>

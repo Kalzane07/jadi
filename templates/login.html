@@ -114,7 +114,7 @@
         {{ end }}
 
         <!-- Form -->
-        <form method="POST" action="/jadi/login" novalidate x-data="{ validate: false, showPassword: false, rememberMe: false, isLoading: false, passwordStrength: 0,
+        <form method="POST" action="{{ .BaseHref }}/login" novalidate x-data="{ validate: false, showPassword: false, rememberMe: false, isLoading: false, passwordStrength: 0,
             checkPasswordStrength() {
                 const password = this.$refs.password.value;
                 if (password.length === 0) this.passwordStrength = 0;

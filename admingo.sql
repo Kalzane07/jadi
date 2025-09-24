@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 24, 2025 at 12:16 AM
+-- Generation Time: Sep 23, 2025 at 02:35 AM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.16
 
@@ -29,12 +29,12 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `kabupatens` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
   `provinsi_id` bigint UNSIGNED NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `kabupatens`
@@ -62,12 +62,11 @@ INSERT INTO `kabupatens` (`id`, `code`, `provinsi_id`, `name`, `created_at`, `up
 CREATE TABLE `kadarkums` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` longblob,
-  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL,
-  `content_type` longtext COLLATE utf8mb4_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` datetime(3) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -77,12 +76,12 @@ CREATE TABLE `kadarkums` (
 
 CREATE TABLE `kecamatans` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
   `kabupaten_id` bigint UNSIGNED NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `kecamatans`
@@ -242,12 +241,12 @@ INSERT INTO `kecamatans` (`id`, `code`, `kabupaten_id`, `name`, `created_at`, `u
 
 CREATE TABLE `kelurahans` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
   `kecamatan_id` bigint UNSIGNED NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `kelurahans`
@@ -1852,12 +1851,11 @@ INSERT INTO `kelurahans` (`id`, `code`, `kecamatan_id`, `name`, `created_at`, `u
 CREATE TABLE `paralegals` (
   `id` bigint UNSIGNED NOT NULL,
   `posbankum_id` bigint UNSIGNED NOT NULL,
-  `nama` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  `dokumen` longblob,
+  `nama` longtext COLLATE utf8mb4_general_ci NOT NULL,
+  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL,
-  `content_type` longtext COLLATE utf8mb4_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` datetime(3) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1886,11 +1884,10 @@ CREATE TABLE `paralegal_kegiatans` (
 CREATE TABLE `pjas` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` longblob,
+  `dokumen` text NOT NULL,
   `catatan` text,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL,
-  `content_type` longtext NOT NULL
+  `updated_at` datetime(3) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -1902,12 +1899,11 @@ CREATE TABLE `pjas` (
 CREATE TABLE `posbankums` (
   `id` bigint UNSIGNED NOT NULL,
   `kelurahan_id` bigint UNSIGNED NOT NULL,
-  `dokumen` longblob,
-  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `dokumen` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `catatan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `created_at` datetime(3) DEFAULT NULL,
-  `updated_at` datetime(3) DEFAULT NULL,
-  `content_type` longtext COLLATE utf8mb4_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` datetime(3) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1917,11 +1913,11 @@ CREATE TABLE `posbankums` (
 
 CREATE TABLE `provinsis` (
   `id` bigint UNSIGNED NOT NULL,
-  `code` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(191) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` longtext COLLATE utf8mb4_general_ci NOT NULL,
   `created_at` datetime(3) DEFAULT NULL,
   `updated_at` datetime(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `provinsis`
@@ -2043,7 +2039,7 @@ ALTER TABLE `kabupatens`
 -- AUTO_INCREMENT for table `kadarkums`
 --
 ALTER TABLE `kadarkums`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT for table `kecamatans`
@@ -2061,7 +2057,7 @@ ALTER TABLE `kelurahans`
 -- AUTO_INCREMENT for table `paralegals`
 --
 ALTER TABLE `paralegals`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `paralegal_kegiatans`
@@ -2073,13 +2069,13 @@ ALTER TABLE `paralegal_kegiatans`
 -- AUTO_INCREMENT for table `pjas`
 --
 ALTER TABLE `pjas`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `posbankums`
 --
 ALTER TABLE `posbankums`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=199;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
 
 --
 -- AUTO_INCREMENT for table `provinsis`
@@ -2091,7 +2087,7 @@ ALTER TABLE `provinsis`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,53 +9,64 @@
     <link href="/jadi/static/output.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
+
         .sidebar {
             width: 240px;
             background-color: #1f2937;
             color: #d1d5db;
         }
+
         .content {
             margin-left: 240px;
         }
+
         .nav-link {
             display: block;
             padding: 0.75rem 1rem;
             border-radius: 0.375rem;
             transition: all 0.2s ease-in-out;
         }
+
         .nav-link:hover {
             background-color: #374151;
             color: #fff;
         }
+
         .submenu {
             padding-left: 2.5rem;
             font-size: 0.875rem;
         }
     </style>
 </head>
+
 <body>
     <!-- Sidebar -->
     <div class="sidebar h-screen fixed top-0 left-0 p-4 flex flex-col shadow-lg z-40">
         <h4 class="text-xl font-bold text-white mb-8">Admin Panel</h4>
         <ul class="space-y-2">
-            <li><a class="nav-link" href="/jadi/admin">🏠 Dashboard</a></li>
-            <li><a class="nav-link bg-gray-700 text-white" href="/jadi/admin/posbankum">📂 Posbankum</a></li>
-            <li><a class="nav-link" href="/jadi/admin/paralegal">👥 Paralegal</a></li>
-            <li><a class="nav-link" href="/jadi/admin/kadarkum">📘 Kadarkum</a></li>
-            <li><a class="nav-link" href="/jadi/admin/pja">📑 PJA</a></li>
-            <li><hr class="my-4 border-gray-600"></li>
+            <li><a class="nav-link" href="{{ .BaseHref }}/admin">🏠 Dashboard</a></li>
+            <li><a class="nav-link bg-gray-700 text-white" href="{{ .BaseHref }}/admin/posbankum">📂 Posbankum</a></li>
+            <li><a class="nav-link" href="{{ .BaseHref }}/admin/paralegal">👥 Paralegal</a></li>
+            <li><a class="nav-link" href="{{ .BaseHref }}/admin/kadarkum">📘 Kadarkum</a></li>
+            <li><a class="nav-link" href="{{ .BaseHref }}/admin/pja">📑 PJA</a></li>
+            <li>
+                <hr class="my-4 border-gray-600">
+            </li>
             <li class="px-3 text-sm font-semibold text-gray-500">Master Wilayah</li>
-            <li><a class="nav-link" href="/jadi/admin/users">👤 Users</a></li>
-            <li><a class="nav-link submenu" href="/jadi/admin/provinsi">🌍 Provinsi</a></li>
-            <li><a class="nav-link submenu" href="/jadi/admin/kabupaten">🏙️ Kabupaten/Kota</a></li>
-            <li><a class="nav-link submenu" href="/jadi/admin/kecamatan">📌 Kecamatan</a></li>
-            <li><a class="nav-link submenu" href="/jadi/admin/kelurahan">🏡 Kelurahan/Desa</a></li>
-            <li><hr class="my-4 border-gray-600"></li>
-            <li><a class="nav-link" href="/jadi/logout">🚪 Logout</a></li>
+            <li><a class="nav-link" href="{{ .BaseHref }}/admin/users">👤 Users</a></li>
+            <li><a class="nav-link submenu" href="{{ .BaseHref }}/admin/provinsi">🌍 Provinsi</a></li>
+            <li><a class="nav-link submenu" href="{{ .BaseHref }}/admin/kabupaten">🏙️ Kabupaten/Kota</a></li>
+            <li><a class="nav-link submenu" href="{{ .BaseHref }}/admin/kecamatan">📌 Kecamatan</a></li>
+            <li><a class="nav-link submenu" href="{{ .BaseHref }}/admin/kelurahan">🏡 Kelurahan/Desa</a></li>
+            <li>
+                <hr class="my-4 border-gray-600">
+            </li>
+            <li><a class="nav-link" href="{{ .BaseHref }}/logout">🚪 Logout</a></li>
         </ul>
     </div>
 
@@ -74,13 +86,16 @@
                 <h2 class="text-3xl font-bold mb-4 md:mb-0">{{ .Title }}</h2>
                 <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
                     <!-- ACTION FORM SUDAH DIPERBAIKI DI SINI -->
-                    <form method="GET" action="/jadi/admin/posbankum" class="flex items-center gap-2 flex-grow">
-                        <input type="text" name="q" value="{{ .Search }}" placeholder="Cari kelurahan..." class="flex-grow p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button class="bg-blue-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-blue-700 transition duration-300">
+                    <form method="GET" action="{{ .BaseHref }}/admin/posbankum" class="flex items-center gap-2 flex-grow">
+                        <input type="text" name="q" value="{{ .Search }}" placeholder="Cari kelurahan..."
+                            class="flex-grow p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button
+                            class="bg-blue-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-blue-700 transition duration-300">
                             🔍 Cari
                         </button>
                     </form>
-                    <a href="/jadi/admin/posbankum/create" class="bg-green-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-green-700 transition duration-300 text-center">
+                    <a href="{{ .BaseHref }}/admin/posbankum/create"
+                        class="bg-green-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-green-700 transition duration-300 text-center">
                         ➕ Tambah
                     </a>
                 </div>
@@ -109,20 +124,22 @@
                             <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Name }}</td>
                             <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
                             <td class="py-3 px-4">
-                                
                                 {{ if $p.Dokumen }}
-<a href="/jadi/dokumen/posbankum/{{.ID}}" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
-    <i class="fas fa-file-alt"></i> Lihat Dokumen
-</a>
-{{ else }}
-<span class="text-gray-400">Belum ada</span>
-{{ end }}
+                                <a href="{{ $.BaseHref }}/admin/posbankum/view/{{ $p.ID }}" target="_blank"
+                                    class="text-blue-600 hover:underline font-medium">📄 Lihat PDF</a>
+                                {{ else }}
+                                <span class="text-gray-400">Belum ada</span>
+                                {{ end }}
                             </td>
                             <td class="py-3 px-4">{{ $p.Catatan }}</td>
-<td class="py-3 px-4">
-    <a href="/jadi/admin/posbankum/edit/{{ $p.ID }}" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2">✏️ Edit</a>
-    <a href="/jadi/admin/posbankum/delete/{{ $p.ID }}" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');" class="text-red-500 hover:text-red-600 font-medium">🗑️ Hapus</a>
-</td>
+                            <td class="py-3 px-4">
+                                <form action="{{ $.BaseHref }}/admin/posbankum/edit/{{ $p.ID }}" method="POST" class="inline-block">
+                                    <button type="submit" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2 bg-transparent border-none p-0 cursor-pointer">✏️ Edit</button>
+                                </form>
+                                <a href="{{ $.BaseHref }}/admin/posbankum/delete/{{ $p.ID }}"
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
+                                    class="text-red-500 hover:text-red-600 font-medium">🗑️ Hapus</a>
+                            </td>
                         </tr>
                         {{ else }}
                         <tr>
@@ -138,27 +155,32 @@
                 <ul class="flex items-center gap-1">
                     {{ if gt .Page 1 }}
                     <li>
-                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition" href="/jadi/admin/posbankum?page={{ sub .Page 1 }}&q={{ .Search }}">← Prev</a>
+                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition"
+                            href="{{ $.BaseHref }}/admin/posbankum?page={{ sub .Page 1 }}&q={{ .Search }}">← Prev</a>
                     </li>
                     {{ end }}
                     {{ range $i := iter .TotalPages }}
                     <li class="{{ if eq $.Page (add $i 1) }}active{{ end }}">
-                        <a class="px-4 py-2 rounded-md {{ if eq $.Page (add $i 1) }}bg-blue-600 text-white{{ else }}bg-white text-gray-700 border border-gray-300{{ end }} hover:bg-blue-700 hover:text-white transition" href="/jadi/admin/posbankum?page={{ add $i 1 }}&q={{ $.Search }}">{{ add $i 1 }}</a>
+                        <a class="px-4 py-2 rounded-md {{ if eq $.Page (add $i 1) }}bg-blue-600 text-white{{ else }}bg-white text-gray-700 border border-gray-300{{ end }} hover:bg-blue-700 hover:text-white transition"
+                            href="{{ $.BaseHref }}/admin/posbankum?page={{ add $i 1 }}&q={{ $.Search }}">{{ add $i 1 }}</a>
                     </li>
                     {{ end }}
                     {{ if lt .Page .TotalPages }}
                     <li>
-                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition" href="/jadi/admin/posbankum?page={{ add .Page 1 }}&q={{ .Search }}">Next →</a>
+                        <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition"
+                            href="{{ $.BaseHref }}/admin/posbankum?page={{ add .Page 1 }}&q={{ .Search }}">Next →</a>
                     </li>
                     {{ end }}
                 </ul>
             </nav>
             <div class="text-center mt-6">
-                <a href="/jadi/admin" class="inline-block bg-gray-500 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-gray-600 transition duration-300">
+                <a href="{{ .BaseHref }}/admin"
+                    class="inline-block bg-gray-500 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-gray-600 transition duration-300">
                     ← Kembali ke Dashboard
                 </a>
             </div>
         </div>
     </div>
 </body>
+
 </html>

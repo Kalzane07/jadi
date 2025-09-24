@@ -16,7 +16,15 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	jadi.POST("/login", controllers.DoLogin)
 	jadi.GET("/logout", controllers.Logout)
 
+	// ================= ROUTES UMUM (BUTUH LOGIN) =================
+	auth := jadi.Group("/")
+	auth.Use(controllers.AuthRequired())
+	{
+		auth.GET("/view-document/:type/:id", controllers.ViewDocument)
+	}
+
 	// ================= ROUTES ADMIN (UNTUK HALAMAN WEB) =================
+	// Grup ini khusus untuk halaman-halaman yang merender HTML dan butuh role "admin".
 	admin := jadi.Group("/admin")
 	admin.Use(controllers.AuthRequired(), controllers.RoleRequired("admin"))
 	{
@@ -35,7 +43,8 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 		admin.GET("/posbankum", controllers.PosbankumIndex)
 		admin.GET("/posbankum/create", controllers.PosbankumCreate)
 		admin.POST("/posbankum/store", controllers.PosbankumStore)
-		admin.GET("/posbankum/edit/:id", controllers.PosbankumEdit)
+		admin.GET("/posbankum/view/:id", controllers.PosbankumView)
+		admin.POST("/posbankum/edit/:id", controllers.PosbankumEdit)
 		admin.POST("/posbankum/update/:id", controllers.PosbankumUpdate)
 		admin.GET("/posbankum/delete/:id", controllers.PosbankumDelete)
 
@@ -43,7 +52,9 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 		admin.GET("/paralegal", controllers.ParalegalIndex)
 		admin.GET("/paralegal/create", controllers.ParalegalCreate)
 		admin.POST("/paralegal/store", controllers.ParalegalStore)
-		admin.GET("/paralegal/edit/:id", controllers.ParalegalEdit)
+		// tambahkan route view untuk view attachments
+		admin.GET("/paralegal/view/:id", controllers.ParalegalView)
+		admin.POST("/paralegal/edit/:id", controllers.ParalegalEdit)
 		admin.POST("/paralegal/update/:id", controllers.ParalegalUpdate)
 		admin.GET("/paralegal/delete/:id", controllers.ParalegalDelete)
 
@@ -51,7 +62,8 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 		admin.GET("/kadarkum", controllers.KadarkumIndex)
 		admin.GET("/kadarkum/create", controllers.KadarkumCreate)
 		admin.POST("/kadarkum/store", controllers.KadarkumStore)
-		admin.GET("/kadarkum/edit/:id", controllers.KadarkumEdit)
+		admin.GET("/kadarkum/view/:id", controllers.KadarkumView)
+		admin.POST("/kadarkum/edit/:id", controllers.KadarkumEdit)
 		admin.POST("/kadarkum/update/:id", controllers.KadarkumUpdate)
 		admin.GET("/kadarkum/delete/:id", controllers.KadarkumDelete)
 
@@ -59,7 +71,8 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 		admin.GET("/pja", controllers.PJAIndex)
 		admin.GET("/pja/create", controllers.PJACreate)
 		admin.POST("/pja/store", controllers.PJAStore)
-		admin.GET("/pja/edit/:id", controllers.PJAEdit)
+		admin.GET("/pja/view/:id", controllers.PJAView)
+		admin.POST("/pja/edit/:id", controllers.PJAEdit)
 		admin.POST("/pja/update/:id", controllers.PJAUpdate)
 		admin.GET("/pja/delete/:id", controllers.PJADelete)
 
@@ -71,10 +84,16 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	}
 
 	// ================= ROUTES API (UNTUK DATA JSON) =================
+	// Grup ini khusus untuk endpoint API yang mengembalikan data JSON.
+	// Cukup pakai AuthRequired() saja, karena tidak merender halaman admin.
 	api := jadi.Group("/api")
 	api.Use(controllers.AuthRequired())
 	{
 		api.GET("/kelurahan/search", controllers.KelurahanSearch)
+		api.GET("/posbankum/search", controllers.PosbankumSearch)
+		api.GET("/kadarkum/search", controllers.PosbankumSearch)
+		api.GET("/pja/search", controllers.PosbankumSearch)
+		api.GET("/paralegal/search", controllers.PosbankumSearch)
 	}
 
 	// ================= ROUTES USER =================
@@ -82,22 +101,7 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	user.Use(controllers.AuthRequired(), controllers.RoleRequired("user"))
 	{
 		user.GET("/", controllers.UserDashboard)
+
 	}
 
-	// ================== DOKUMEN YANG DIPROTEKSI ==================
-	dokumen := jadi.Group("/dokumen")
-	dokumen.Use(controllers.AuthRequired())
-	{
-		// POSBANKUM
-		dokumen.GET("/posbankum/:id", controllers.GetPosbankumDokumen)
-
-		// PARALEGAL
-		dokumen.GET("/paralegal/:id", controllers.GetParalegalDokumen)
-
-		// PJA
-		dokumen.GET("/pja/:id", controllers.GetPJADokumen)
-
-		// KADARKUM
-		dokumen.GET("/kadarkum/:id", controllers.GetKadarkumDokumen)
-	}
 }

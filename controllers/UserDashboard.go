@@ -1,22 +1,23 @@
 package controllers
 
 import (
+	"mime"
 	"net/http"
-	"strconv"
+	"path/filepath"
 
 	"go-admin/config"
 	"go-admin/models"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // ==================== STRUCT BARU UNTUK PARALEGAL ====================
 
 // Struktur untuk menampung nama dan dokumen Paralegal
 type ParalegalData struct {
-	Nama      string
-	DokumenID uint
+	ID      uint // ID diperlukan untuk link dokumen di template
+	Nama    string
+	Dokumen string
 }
 
 // Struktur untuk data Paralegal per kelurahan
@@ -46,10 +47,13 @@ type KabupatenParalegal struct {
 type KelurahanDokumen struct {
 	NamaKelurahan string
 	AdaDokumen    bool
-	Dokumen       []uint
 	Total         int
 	Tercapai      int
 	Persentase    float64
+	Posbankums    []models.Posbankum
+	Kadarkums     []models.Kadarkum
+	Pjas          []models.Pja
+	Paralegals    []models.Paralegal // Field ini sepertinya tidak terpakai di sini, tapi tidak apa-apa
 }
 
 // Struktur buat nampung data summary per kecamatan
@@ -74,7 +78,6 @@ type KabupatenSummary struct {
 type DashboardData struct {
 	Title                   string
 	Provinsi                string
-	Tahun                   int
 	Posbankum               []KabupatenSummary
 	Kadarkum                []KabupatenSummary
 	PJA                     []KabupatenSummary
@@ -87,6 +90,7 @@ type DashboardData struct {
 	PersenPosbankumProvinsi float64
 	PersenKadarkumProvinsi  float64
 	PersenPjaProvinsi       float64
+	BaseHref                string
 }
 
 // helper hitung persentase aman
@@ -117,7 +121,6 @@ func UserDashboard(c *gin.Context) {
 		totalKelurahanProv64              int64
 	)
 
-	// hitung total kelurahan di provinsi
 	config.DB.Model(&models.Kelurahan{}).Count(&totalKelurahanProv64)
 	totalKelurahanProv := int(totalKelurahanProv64)
 
@@ -136,32 +139,24 @@ func UserDashboard(c *gin.Context) {
 			config.DB.Model(&models.Kelurahan{}).Where("kecamatan_id = ?", kec.ID).Count(&totalPos)
 			config.DB.Model(&models.Posbankum{}).
 				Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").
-				Where("kelurahans.kecamatan_id = ? AND LENGTH(posbankums.dokumen) > 0", kec.ID).Count(&tercapaiPos)
+				Where("kelurahans.kecamatan_id = ?", kec.ID).Count(&tercapaiPos)
 
 			var kelurahanDocsPos []KelurahanDokumen
 			for _, kel := range kec.Kelurahans {
-				var docs []models.Posbankum
-				config.DB.Where("kelurahan_id = ?", kel.ID).Find(&docs)
-
-				var dokIDs []uint
-				for _, d := range docs {
-					if len(d.Dokumen) > 0 {
-						dokIDs = append(dokIDs, d.ID)
-					}
-				}
+				var posbankums []models.Posbankum
+				config.DB.Where("kelurahan_id = ?", kel.ID).Find(&posbankums)
 
 				tercapai := 0
-				if len(dokIDs) > 0 {
+				if len(posbankums) > 0 {
 					tercapai = 1
 				}
 
 				kelurahanDocsPos = append(kelurahanDocsPos, KelurahanDokumen{
 					NamaKelurahan: kel.Name,
-					AdaDokumen:    tercapai == 1,
-					Dokumen:       dokIDs,
 					Total:         1,
 					Tercapai:      tercapai,
 					Persentase:    hitungPersen(tercapai, 1),
+					Posbankums:    posbankums,
 				})
 			}
 
@@ -180,32 +175,22 @@ func UserDashboard(c *gin.Context) {
 			config.DB.Model(&models.Kelurahan{}).Where("kecamatan_id = ?", kec.ID).Count(&totalK)
 			config.DB.Model(&models.Kadarkum{}).
 				Joins("JOIN kelurahans ON kelurahans.id = kadarkums.kelurahan_id").
-				Where("kelurahans.kecamatan_id = ? AND LENGTH(kadarkums.dokumen) > 0", kec.ID).Count(&tercapaiK)
+				Where("kelurahans.kecamatan_id = ?", kec.ID).Count(&tercapaiK)
 
 			var kelurahanDocsKadarkum []KelurahanDokumen
 			for _, kel := range kec.Kelurahans {
-				var docs []models.Kadarkum
-				config.DB.Where("kelurahan_id = ?", kel.ID).Find(&docs)
-
-				var dokIDs []uint
-				for _, d := range docs {
-					if len(d.Dokumen) > 0 {
-						dokIDs = append(dokIDs, d.ID)
-					}
-				}
-
+				var kadarkums []models.Kadarkum
+				config.DB.Where("kelurahan_id = ?", kel.ID).Find(&kadarkums)
 				tercapai := 0
-				if len(dokIDs) > 0 {
+				if len(kadarkums) > 0 {
 					tercapai = 1
 				}
-
 				kelurahanDocsKadarkum = append(kelurahanDocsKadarkum, KelurahanDokumen{
 					NamaKelurahan: kel.Name,
-					AdaDokumen:    tercapai == 1,
-					Dokumen:       dokIDs,
 					Total:         1,
 					Tercapai:      tercapai,
 					Persentase:    hitungPersen(tercapai, 1),
+					Kadarkums:     kadarkums,
 				})
 			}
 
@@ -222,34 +207,24 @@ func UserDashboard(c *gin.Context) {
 			// ================== PJA ==================
 			var totalP, tercapaiP int64
 			config.DB.Model(&models.Kelurahan{}).Where("kecamatan_id = ?", kec.ID).Count(&totalP)
-			config.DB.Model(&models.PJA{}).
+			config.DB.Model(&models.Pja{}).
 				Joins("JOIN kelurahans ON kelurahans.id = pjas.kelurahan_id").
-				Where("kelurahans.kecamatan_id = ? AND LENGTH(pjas.dokumen) > 0", kec.ID).Count(&tercapaiP)
+				Where("kelurahans.kecamatan_id = ?", kec.ID).Count(&tercapaiP)
 
 			var kelurahanDocsPja []KelurahanDokumen
 			for _, kel := range kec.Kelurahans {
-				var docs []models.PJA
-				config.DB.Where("kelurahan_id = ?", kel.ID).Find(&docs)
-
-				var dokIDs []uint
-				for _, d := range docs {
-					if len(d.Dokumen) > 0 {
-						dokIDs = append(dokIDs, d.ID)
-					}
-				}
-
+				var pjas []models.Pja
+				config.DB.Where("kelurahan_id = ?", kel.ID).Find(&pjas)
 				tercapai := 0
-				if len(dokIDs) > 0 {
+				if len(pjas) > 0 {
 					tercapai = 1
 				}
-
 				kelurahanDocsPja = append(kelurahanDocsPja, KelurahanDokumen{
 					NamaKelurahan: kel.Name,
-					AdaDokumen:    tercapai == 1,
-					Dokumen:       dokIDs,
 					Total:         1,
 					Tercapai:      tercapai,
 					Persentase:    hitungPersen(tercapai, 1),
+					Pjas:          pjas,
 				})
 			}
 
@@ -268,28 +243,29 @@ func UserDashboard(c *gin.Context) {
 			totalParalegalKec := 0
 
 			for _, kel := range kec.Kelurahans {
-				var paralegals []models.Paralegal
+				var paralegalsFromDB []models.Paralegal
 				config.DB.Model(&models.Paralegal{}).
 					Joins("JOIN posbankums ON posbankums.id = paralegals.posbankum_id").
 					Where("posbankums.kelurahan_id = ?", kel.ID).
-					Find(&paralegals)
+					Find(&paralegalsFromDB)
 
-				var paralegalData []ParalegalData
-				for _, p := range paralegals {
-					paralegalData = append(paralegalData, ParalegalData{
-						Nama:      p.Nama,
-						DokumenID: p.ID,
+				var paralegalDataForKelurahan []ParalegalData
+				for _, p := range paralegalsFromDB {
+					paralegalDataForKelurahan = append(paralegalDataForKelurahan, ParalegalData{
+						ID:      p.ID, // Kirim ID ke template
+						Nama:    p.Nama,
+						Dokumen: p.Dokumen,
 					})
 				}
 
-				totalParalegalKec += len(paralegals)
-
 				kelurahanParalegals = append(kelurahanParalegals, KelurahanParalegal{
 					NamaKelurahan: kel.Name,
-					Total:         len(paralegals),
-					Paralegals:    paralegalData,
+					Total:         len(paralegalsFromDB),
+					Paralegals:    paralegalDataForKelurahan,
 				})
+				totalParalegalKec += len(paralegalsFromDB)
 			}
+			// KURUNG KURAWAL YANG SALAH SEBELUMNYA ADA DI SINI. SUDAH DIHAPUS.
 
 			paralegalKec = append(paralegalKec, KecamatanParalegal{
 				NamaKecamatan: kec.Name,
@@ -297,7 +273,8 @@ func UserDashboard(c *gin.Context) {
 				Kelurahans:    kelurahanParalegals,
 			})
 			totalParalegalKab += totalParalegalKec
-		}
+
+		} // <-- KURUNG KURAWAL DIPINDAHKAN KE SINI UNTUK MENUTUP LOOP KECAMATAN DENGAN BENAR
 
 		// Push ke level kabupaten
 		posbankumAll = append(posbankumAll, KabupatenSummary{
@@ -343,7 +320,6 @@ func UserDashboard(c *gin.Context) {
 	data := DashboardData{
 		Title:                   "Dashboard User",
 		Provinsi:                provinsi.Name,
-		Tahun:                   2025,
 		Posbankum:               posbankumAll,
 		Kadarkum:                kadarkumAll,
 		PJA:                     pjaAll,
@@ -356,113 +332,64 @@ func UserDashboard(c *gin.Context) {
 		PersenPosbankumProvinsi: hitungPersen(tercapaiPosProv, totalKelurahanProv),
 		PersenKadarkumProvinsi:  hitungPersen(tercapaiKadProv, totalKelurahanProv),
 		PersenPjaProvinsi:       hitungPersen(tercapaiPJAProv, totalKelurahanProv),
+		BaseHref:                "/jadi",
 	}
 
 	c.HTML(http.StatusOK, "user_dashboard.html", data)
 }
 
-// ==================== CONTROLLER TAMBAHAN: DOKUMEN ====================
+// ViewDocument adalah handler universal untuk menampilkan dokumen
+func ViewDocument(c *gin.Context) {
+	docType := c.Param("type")
+	id := c.Param("id")
+	var filePath string
 
-func GetParalegalDokumen(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.String(http.StatusBadRequest, "❌ ID tidak valid")
-		return
-	}
-
-	var p models.Paralegal
-	if err := config.DB.First(&p, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.String(http.StatusNotFound, "❌ Paralegal tidak ditemukan")
+	switch docType {
+	case "posbankum":
+		var data models.Posbankum
+		if err := config.DB.First(&data, id).Error; err != nil {
+			c.String(http.StatusNotFound, "Dokumen Posbankum tidak ditemukan")
 			return
 		}
-		c.String(http.StatusInternalServerError, "❌ Terjadi kesalahan database")
-		return
-	}
-
-	if len(p.Dokumen) == 0 {
-		c.String(http.StatusNotFound, "❌ Paralegal belum mengunggah dokumen")
-		return
-	}
-
-	c.Data(http.StatusOK, p.ContentType, p.Dokumen)
-}
-
-func GetPosbankumDokumen(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.String(http.StatusBadRequest, "❌ ID tidak valid")
-		return
-	}
-
-	var p models.Posbankum
-	if err := config.DB.First(&p, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.String(http.StatusNotFound, "❌ Posbankum tidak ditemukan")
+		filePath = data.Dokumen
+	case "paralegal":
+		var data models.Paralegal
+		if err := config.DB.First(&data, id).Error; err != nil {
+			c.String(http.StatusNotFound, "Dokumen Paralegal tidak ditemukan")
 			return
 		}
-		c.String(http.StatusInternalServerError, "❌ Terjadi kesalahan database")
-		return
-	}
-
-	if len(p.Dokumen) == 0 {
-		c.String(http.StatusNotFound, "❌ Posbankum belum mengunggah dokumen")
-		return
-	}
-
-	c.Data(http.StatusOK, p.ContentType, p.Dokumen)
-}
-
-func GetKadarkumDokumen(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.String(http.StatusBadRequest, "❌ ID tidak valid")
-		return
-	}
-
-	var k models.Kadarkum
-	if err := config.DB.First(&k, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.String(http.StatusNotFound, "❌ Kadarkum tidak ditemukan")
+		filePath = data.Dokumen
+	case "pja":
+		var data models.Pja
+		if err := config.DB.First(&data, id).Error; err != nil {
+			c.String(http.StatusNotFound, "Dokumen PJA tidak ditemukan")
 			return
 		}
-		c.String(http.StatusInternalServerError, "❌ Terjadi kesalahan database")
-		return
-	}
-
-	if len(k.Dokumen) == 0 {
-		c.String(http.StatusNotFound, "❌ Kadarkum belum mengunggah dokumen")
-		return
-	}
-
-	c.Data(http.StatusOK, k.ContentType, k.Dokumen)
-}
-
-func GetPJADokumen(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		c.String(http.StatusBadRequest, "❌ ID tidak valid")
-		return
-	}
-
-	var p models.PJA
-	if err := config.DB.First(&p, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.String(http.StatusNotFound, "❌ PJA tidak ditemukan")
+		filePath = data.Dokumen
+	case "kadarkum":
+		var data models.Kadarkum
+		if err := config.DB.First(&data, id).Error; err != nil {
+			c.String(http.StatusNotFound, "Dokumen Kadarkum tidak ditemukan")
 			return
 		}
-		c.String(http.StatusInternalServerError, "❌ Terjadi kesalahan database")
+		filePath = data.Dokumen
+	default:
+		c.String(http.StatusBadRequest, "Tipe dokumen tidak valid")
 		return
 	}
 
-	if len(p.Dokumen) == 0 {
-		c.String(http.StatusNotFound, "❌ PJA belum mengunggah dokumen")
+	if filePath == "" {
+		c.String(http.StatusNotFound, "Path dokumen kosong atau tidak tersedia.")
 		return
 	}
 
-	c.Data(http.StatusOK, p.ContentType, p.Dokumen)
+	fileName := filepath.Base(filePath)
+	contentType := mime.TypeByExtension(filepath.Ext(fileName))
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	c.Header("Content-Disposition", "inline; filename="+fileName)
+	c.Header("Content-Type", contentType)
+	c.File(filePath)
 }

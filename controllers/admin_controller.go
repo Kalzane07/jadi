@@ -108,7 +108,7 @@ func AdminPanel(c *gin.Context) {
 			}
 
 		case "pja":
-			var results []models.PJA
+			var results []models.Pja
 			dbPja := config.DB.Preload("Kelurahan.Kecamatan.Kabupaten").
 				Joins("JOIN kelurahans ON kelurahans.id = pjas.kelurahan_id").
 				Joins("JOIN kecamatans ON kecamatans.id = kelurahans.kecamatan_id").
@@ -117,7 +117,7 @@ func AdminPanel(c *gin.Context) {
 					"%"+q+"%", "%"+q+"%", "%"+q+"%")
 
 			var count int64
-			dbPja.Model(&models.PJA{}).Count(&count)
+			dbPja.Model(&models.Pja{}).Count(&count)
 			dbPja.Limit(limit).Offset(offset).Find(&results)
 			totalPages = int(math.Ceil(float64(count) / float64(limit)))
 
@@ -145,5 +145,6 @@ func AdminPanel(c *gin.Context) {
 		"totalPosbankum":   totalPosbankum,
 		"totalPJA":         totalPJA,
 		"totalKadarkum":    totalKadarkum,
+		"BaseHref":         "/jadi",
 	})
 }

@@ -35,26 +35,26 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <h4 class="text-light text-center mb-4">Admin Panel</h4>
-        <a href="/jadi/admin">🏠 Dashboard</a>
-        <a href="/jadi/admin/posbankum">📂 Posbankum</a>
-        <a href="/jadi/admin/paralegal" class="bg-dark text-light">👥 Paralegal</a>
-        <a href="/jadi/admin/kadarkum">📘 Kadarkum</a>
-        <a href="/jadi/admin/pja">📑 PJA</a>
+        <a href="{{ .BaseHref }}/admin">🏠 Dashboard</a>
+        <a href="{{ .BaseHref }}/admin/posbankum">📂 Posbankum</a>
+        <a href="{{ .BaseHref }}/admin/paralegal">👥 Paralegal</a>
+        <a href="{{ .BaseHref }}/admin/kadarkum">📘 Kadarkum</a>
+        <a href="{{ .BaseHref }}/admin/pja">📑 PJA</a>
         <hr class="text-light">
         <div class="px-3 text-light">Master Wilayah</div>
-        <a href="/jadi/admin/users" class="submenu">👤 Users</a>
-        <a href="/jadi/admin/provinsi" class="submenu">🌍 Provinsi</a>
-        <a href="/jadi/admin/kabupaten" class="submenu">🏙️ Kabupaten/Kota</a>
-        <a href="/jadi/admin/kecamatan" class="submenu">📌 Kecamatan</a>
-        <a href="/jadi/admin/kelurahan" class="submenu">🏡 Kelurahan/Desa</a>
+        <a href="{{ .BaseHref }}/admin/users" class="submenu">👤 Users</a>
+        <a href="{{ .BaseHref }}/admin/provinsi" class="submenu">🌍 Provinsi</a>
+        <a href="{{ .BaseHref }}/admin/kabupaten" class="submenu">🏙️ Kabupaten/Kota</a>
+        <a href="{{ .BaseHref }}/admin/kecamatan" class="submenu">📌 Kecamatan</a>
+        <a href="{{ .BaseHref }}/admin/kelurahan" class="submenu">🏡 Kelurahan/Desa</a>
         <hr class="text-light">
-        <a href="/jadi/logout">🚪 Logout</a>
+        <a href="{{ .BaseHref }}/logout">🚪 Logout</a>
     </div>
 
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Paralegal</span>
+            <span class="navbar-brand mb-0 h1">{{ .Title }}</span>
             <span class="text-light">👤 {{ .user }}</span>
         </div>
     </nav>
@@ -63,11 +63,11 @@
     <div class="content mt-5 pt-4">
         <div class="container">
             <div class="card shadow-lg">
-                <div class="card-header bg-warning text-dark">
+                <div class="card-header bg-warning">
                     <h5 class="mb-0">✏️ Edit Paralegal</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="/jadi/admin/paralegal/update/{{ .Paralegal.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <form method="POST" action="{{ .BaseHref }}/admin/paralegal/update/{{ .Paralegal.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
     
                         <!-- Nama -->
                         <div class="mb-3">
@@ -76,7 +76,7 @@
                             <div class="invalid-feedback">Nama wajib diisi.</div>
                         </div>
     
-                        <!-- Posbankum -->
+                        <!-- Posbankum (read-only) -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Posbankum</label>
                             <input type="text" class="form-control" 
@@ -91,12 +91,12 @@
                             <input type="file" name="dokumen" accept="application/pdf" class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
                             <div class="form-text text-muted">
                                 File PDF, maksimal 10MB. <br>
-<!-- {{ if .Paralegal.Dokumen }}
-    <a href="{{ .Paralegal.ID | formatDokumenURL }}" target="_blank">📄 Lihat Dokumen</a>
-{{ else }}
-    <span class="text-muted">Belum ada</span>
-{{ end }} -->
-
+                                Dokumen sekarang:
+                                {{ if .Paralegal.Dokumen }}
+                                    <a href="{{ $.BaseHref }}/{{ .Paralegal.Dokumen }}" target="_blank">📄 Lihat PDF</a>
+                                {{ else }}
+                                    <span class="text-muted">Belum ada</span>
+                                {{ end }}
                             </div>
                             <div class="invalid-feedback">
                                 {{ if .ErrorFile }}
@@ -107,7 +107,7 @@
     
                         <!-- Tombol -->
                         <div class="d-flex justify-content-end">
-                            <a href="/jadi/admin/paralegal" class="btn btn-secondary me-2">← Batal</a>
+                            <a href="{{ .BaseHref }}/admin/paralegal" class="btn btn-secondary me-2">← Batal</a>
                             <button type="submit" class="btn btn-success">💾 Update</button>
                         </div>
                     </form>

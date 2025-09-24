@@ -22,7 +22,8 @@ func HashPassword(password string) (string, error) {
 // Login Page
 func ShowLogin(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", gin.H{
-		"Title": "Login",
+		"Title":    "Login",
+		"BaseHref": "/jadi",
 	})
 }
 
@@ -35,26 +36,36 @@ func DoLogin(c *gin.Context) {
 	// cari user berdasarkan username
 	if err := config.DB.Where("username = ?", username).First(&user).Error; err != nil {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"Title": "Login",
-			"error": "❌ Username atau password salah", // Ubah pesan error untuk mencegah enumerasi pengguna
+			"Title":    "Login",
+			"error":    "❌ Username tidak ditemukan",
+			"BaseHref": "/jadi",
 		})
 		return
 	}
 
-	// cek password pakai bcrypt. Fallback plaintext dihapus!
+	// cek password pakai bcrypt
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		c.HTML(http.StatusOK, "login.html", gin.H{
-			"Title": "Login",
-			"error": "❌ Username atau password salah", // Pesan error yang sama
-		})
-		return
+		// fallback: kalau password masih plain text di DB
+		if user.Password == password {
+			// langsung update jadi hashed
+			hashed, _ := HashPassword(password)
+			user.Password = hashed
+			config.DB.Save(&user)
+		} else {
+			c.HTML(http.StatusOK, "login.html", gin.H{
+				"Title":    "Login",
+				"error":    "❌ Password salah",
+				"BaseHref": "/jadi",
+			})
+			return
+		}
 	}
 
 	// simpan session
 	session := sessions.Default(c)
 	session.Set("user", user.Username)
-	session.Set("role", user.Role)
+	session.Set("role", user.Role) // simpan role (admin/user)
 	session.Save()
 
 	// redirect sesuai role

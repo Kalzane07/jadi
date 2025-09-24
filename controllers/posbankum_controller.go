@@ -1,24 +1,26 @@
 package controllers
 
 import (
-	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"go-admin/config"
 	"go-admin/models"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 // ================== INDEX ==================
 func PosbankumIndex(c *gin.Context) {
+	// ambil query search (pakai param "q")
 	search := c.Query("q")
+
+	// pagination setup
 	limit := 50
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if page < 1 {
@@ -32,26 +34,27 @@ func PosbankumIndex(c *gin.Context) {
 		Preload("Kelurahan.Kecamatan").
 		Preload("Kelurahan.Kecamatan.Kabupaten")
 
+	// filter kalau ada search
 	if search != "" {
 		db = db.Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").
 			Where("kelurahans.name LIKE ? OR posbankums.catatan LIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 
+	// hitung total
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Error menghitung total data")
+		c.String(http.StatusInternalServerError, "Error hitung total")
 		return
 	}
 
+	// ambil data dengan limit + offset
 	if err := db.Offset(offset).Limit(limit).Find(&posbankums).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Error mengambil data")
+		c.String(http.StatusInternalServerError, "Error ambil data")
 		return
 	}
 
+	// hitung total halaman
 	totalPages := int((total + int64(limit) - 1) / int64(limit))
-
-	session := sessions.Default(c)
-	user := session.Get("user")
 
 	c.HTML(http.StatusOK, "posbankum_index.html", gin.H{
 		"Title":      "Data Posbankum",
@@ -60,105 +63,109 @@ func PosbankumIndex(c *gin.Context) {
 		"Page":       page,
 		"Offset":     offset,
 		"TotalPages": totalPages,
-		"user":       user,
+		"BaseHref":   "/jadi", // Tambahkan ini
 	})
 }
 
 // ================== CREATE FORM ==================
 func PosbankumCreate(c *gin.Context) {
-	session := sessions.Default(c)
-	user := session.Get("user")
 	c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
-		"Title": "Tambah Posbankum",
-		"user":  user,
+		"Title":    "Tambah Posbankum",
+		"BaseHref": "/jadi", // Tambahkan ini
 	})
 }
 
-// ================== STORE DOKUMEN KE DATABASE ==================
+// ================== STORE ==================
 func PosbankumStore(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
 	catatan := c.PostForm("catatan")
 
+	// cek duplikasi
 	var existing models.Posbankum
 	if err := config.DB.Where("kelurahan_id = ?", kelurahanID).First(&existing).Error; err == nil {
-		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
+		c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
 			"Title":          "Tambah Posbankum",
-			"ErrorKelurahan": "Posbankum untuk kelurahan ini sudah ada.",
+			"ErrorKelurahan": "❌ Posbankum untuk kelurahan ini sudah ada",
 			"Catatan":        catatan,
+			"BaseHref":       "/jadi", // Tambahkan ini
 		})
 		return
 	}
 
 	file, err := c.FormFile("dokumen")
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
+		c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
 			"Title":     "Tambah Posbankum",
-			"ErrorFile": "Dokumen wajib diunggah.",
+			"ErrorFile": "❌ Dokumen wajib diupload",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi", // Tambahkan ini
 		})
 		return
 	}
 
-	// ✅ Validasi ukuran
+	// validasi file
 	if file.Size > 10*1024*1024 {
-		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
+		c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
 			"Title":     "Tambah Posbankum",
-			"ErrorFile": "Ukuran file maksimal 10MB.",
+			"ErrorFile": "❌ Ukuran file maksimal 10MB",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi", // Tambahkan ini
+		})
+		return
+	}
+	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
+		c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
+			"Title":     "Tambah Posbankum",
+			"ErrorFile": "❌ File harus berupa PDF",
+			"Catatan":   catatan,
+			"BaseHref":  "/jadi", // Tambahkan ini
 		})
 		return
 	}
 
-	// ✅ Validasi ekstensi
-	if filepath.Ext(file.Filename) != ".pdf" {
-		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
+	uploadPath := "uploads/posbankum"
+	os.MkdirAll(uploadPath, os.ModePerm)
+
+	// generate nama file unik
+	ext := filepath.Ext(file.Filename)
+	newName := uuid.New().String() + ext
+	fullPath := filepath.Join(uploadPath, newName)
+
+	if err := c.SaveUploadedFile(file, fullPath); err != nil {
+		c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
 			"Title":     "Tambah Posbankum",
-			"ErrorFile": "Ekstensi file harus .pdf",
+			"ErrorFile": "❌ Gagal upload file",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi", // Tambahkan ini
 		})
 		return
 	}
 
-	src, err := file.Open()
-	if err != nil {
-		log.Println("Gagal memproses file:", err)
-		c.String(http.StatusInternalServerError, "Gagal memproses file")
-		return
-	}
-	defer src.Close()
-
-	// ✅ Validasi magic bytes PDF
-	buf := make([]byte, 5)
-	if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
-		c.HTML(http.StatusBadRequest, "posbankum_create.html", gin.H{
-			"Title":     "Tambah Posbankum",
-			"ErrorFile": "File tidak valid, harus PDF asli.",
-			"Catatan":   catatan,
-		})
-		return
-	}
-	src.Seek(0, io.SeekStart)
-
-	fileBytes, err := ioutil.ReadAll(src)
-	if err != nil {
-		log.Println("Gagal membaca file:", err)
-		c.String(http.StatusInternalServerError, "Gagal membaca file")
-		return
-	}
+	publicPath := strings.ReplaceAll(fullPath, "\\", "/")
 
 	posbankum := models.Posbankum{
 		KelurahanID: uint(kelurahanID),
-		Dokumen:     fileBytes,
-		ContentType: "application/pdf",
+		Dokumen:     publicPath,
 		Catatan:     catatan,
 	}
 
-	if err := config.DB.Create(&posbankum).Error; err != nil {
-		log.Println("Gagal menyimpan data ke database:", err)
-		c.String(http.StatusInternalServerError, "Gagal menyimpan data ke database")
+	config.DB.Create(&posbankum)
+	c.Redirect(http.StatusFound, "/jadi/admin/posbankum") // Redirect tidak perlu diubah
+}
+
+// ================== VIEW DOKUMEN ==================
+func PosbankumView(c *gin.Context) {
+	id := c.Param("id")
+	var posbankum models.Posbankum
+	if err := config.DB.First(&posbankum, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Dokumen tidak ditemukan: "+err.Error())
 		return
 	}
-	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
+
+	// Set header agar browser tahu ini adalah file untuk ditampilkan/diunduh
+	c.Header("Content-Disposition", "inline; filename="+filepath.Base(posbankum.Dokumen))
+	c.Header("Content-Type", "application/pdf")
+	c.File(posbankum.Dokumen)
 }
 
 // ================== EDIT FORM ==================
@@ -173,124 +180,100 @@ func PosbankumEdit(c *gin.Context) {
 		if err == gorm.ErrRecordNotFound {
 			c.String(http.StatusNotFound, "Data tidak ditemukan")
 		} else {
-			c.String(http.StatusInternalServerError, "Error database")
+			c.String(http.StatusInternalServerError, "Error DB")
 		}
 		return
 	}
-
-	session := sessions.Default(c)
-	user := session.Get("user")
 
 	c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
 		"Title":     "Edit Posbankum",
 		"Posbankum": posbankum,
-		"user":      user,
+		"BaseHref":  "/jadi", // Tambahkan ini
 	})
 }
 
-// ================== UPDATE DOKUMEN DI DATABASE ==================
+// ================== UPDATE ==================
 func PosbankumUpdate(c *gin.Context) {
 	id := c.Param("id")
 	var posbankum models.Posbankum
-
 	if err := config.DB.First(&posbankum, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.String(http.StatusNotFound, "Data tidak ditemukan")
-		} else {
-			c.String(http.StatusInternalServerError, "Error database")
-		}
+		c.String(http.StatusNotFound, "Data tidak ditemukan")
 		return
 	}
 
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
-	posbankum.KelurahanID = uint(kelurahanID)
-	posbankum.Catatan = c.PostForm("catatan")
 
-	// Cek duplikasi kelurahan selain data itu sendiri
+	// cek duplikasi selain dirinya sendiri
 	var count int64
 	config.DB.Model(&models.Posbankum{}).
 		Where("kelurahan_id = ? AND id <> ?", kelurahanID, posbankum.ID).
 		Count(&count)
-
 	if count > 0 {
-		session := sessions.Default(c)
-		user := session.Get("user")
-		c.HTML(http.StatusBadRequest, "posbankum_edit.html", gin.H{
+		c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
 			"Title":          "Edit Posbankum",
 			"Posbankum":      posbankum,
-			"ErrorKelurahan": "Posbankum untuk kelurahan ini sudah ada.",
-			"user":           user,
+			"ErrorKelurahan": "❌ Posbankum untuk kelurahan ini sudah ada",
+			"BaseHref":       "/jadi", // Tambahkan ini
 		})
 		return
 	}
 
+	posbankum.KelurahanID = uint(kelurahanID)
+	posbankum.Catatan = c.PostForm("catatan")
+
+	// cek file baru
 	file, err := c.FormFile("dokumen")
-	if err == nil { // ada file baru
+	if err == nil {
 		if file.Size > 10*1024*1024 {
-			session := sessions.Default(c)
-			user := session.Get("user")
-			c.HTML(http.StatusBadRequest, "posbankum_edit.html", gin.H{
+			c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
 				"Title":     "Edit Posbankum",
 				"Posbankum": posbankum,
-				"ErrorFile": "Ukuran file maksimal 10MB.",
-				"user":      user,
+				"ErrorFile": "❌ Ukuran file maksimal 10MB",
+				"BaseHref":  "/jadi", // Tambahkan ini
+			})
+			return
+		}
+		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
+			c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
+				"Title":     "Edit Posbankum",
+				"Posbankum": posbankum,
+				"ErrorFile": "❌ File harus berupa PDF",
+				"BaseHref":  "/jadi", // Tambahkan ini
 			})
 			return
 		}
 
-		if filepath.Ext(file.Filename) != ".pdf" {
-			session := sessions.Default(c)
-			user := session.Get("user")
-			c.HTML(http.StatusBadRequest, "posbankum_edit.html", gin.H{
+		uploadPath := "uploads/posbankum"
+		os.MkdirAll(uploadPath, os.ModePerm)
+
+		// generate nama file unik
+		ext := filepath.Ext(file.Filename)
+		newName := uuid.New().String() + ext
+		newPath := filepath.Join(uploadPath, newName)
+
+		if err := c.SaveUploadedFile(file, newPath); err != nil {
+			c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
 				"Title":     "Edit Posbankum",
 				"Posbankum": posbankum,
-				"ErrorFile": "Ekstensi file harus .pdf",
-				"user":      user,
+				"ErrorFile": "❌ Gagal upload file",
+				"BaseHref":  "/jadi", // Tambahkan ini
 			})
 			return
 		}
 
-		src, err := file.Open()
-		if err != nil {
-			log.Println("Gagal membuka file:", err)
-			c.String(http.StatusInternalServerError, "Gagal memproses file baru")
-			return
-		}
-		defer src.Close()
-
-		buf := make([]byte, 5)
-		if _, err := src.Read(buf); err != nil || string(buf) != "%PDF-" {
-			session := sessions.Default(c)
-			user := session.Get("user")
-			c.HTML(http.StatusBadRequest, "posbankum_edit.html", gin.H{
-				"Title":     "Edit Posbankum",
-				"Posbankum": posbankum,
-				"ErrorFile": "File tidak valid, harus PDF asli.",
-				"user":      user,
-			})
-			return
-		}
-		src.Seek(0, io.SeekStart)
-
-		fileBytes, err := ioutil.ReadAll(src)
-		if err != nil {
-			log.Println("Gagal membaca file:", err)
-			c.String(http.StatusInternalServerError, "Gagal membaca file baru")
-			return
+		// hapus file lama kalau ada
+		if posbankum.Dokumen != "" {
+			_ = os.Remove(posbankum.Dokumen)
 		}
 
-		posbankum.Dokumen = fileBytes
-		posbankum.ContentType = "application/pdf"
+		posbankum.Dokumen = strings.ReplaceAll(newPath, "\\", "/")
 	}
 
-	if err := config.DB.Save(&posbankum).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Gagal mengupdate data di database")
-		return
-	}
-	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
+	config.DB.Save(&posbankum)
+	c.Redirect(http.StatusFound, "/jadi/admin/posbankum") // Redirect tidak perlu diubah
 }
 
-// ================== DELETE DOKUMEN DARI DATABASE ==================
+// ================== DELETE ==================
 func PosbankumDelete(c *gin.Context) {
 	id := c.Param("id")
 	var posbankum models.Posbankum
@@ -300,38 +283,42 @@ func PosbankumDelete(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Delete(&posbankum).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Gagal menghapus data dari database")
-		return
+	// hapus file dari storage kalau ada
+	if posbankum.Dokumen != "" {
+		_ = os.Remove(posbankum.Dokumen)
 	}
 
-	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
+	// hapus record dari DB
+	config.DB.Delete(&posbankum)
+
+	c.Redirect(http.StatusFound, "/jadi/admin/posbankum") // Redirect tidak perlu diubah
 }
 
-// ================== API SEARCH ==================
-func PosbankumSearch(c *gin.Context) {
+// ================== API: Autocomplete Kelurahan ==================
+func KelurahanSearch(c *gin.Context) {
 	term := c.Query("term")
-
-	var results []struct {
-		ID        uint   `json:"id"`
-		Kelurahan string `json:"kelurahan"`
-		Kecamatan string `json:"kecamatan"`
-		Kabupaten string `json:"kabupaten"`
-	}
-
-	err := config.DB.Table("posbankums").
-		Select("posbankums.id, kelurahans.name AS kelurahan, kecamatans.name AS kecamatan, kabupatens.name AS kabupaten").
-		Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").
-		Joins("JOIN kecamatans ON kecamatans.id = kelurahans.kecamatan_id").
-		Joins("JOIN kabupatens ON kabupatens.id = kecamatans.kabupaten_id").
-		Where("kelurahans.name LIKE ? OR kecamatans.name LIKE ? OR kabupatens.name LIKE ?", "%"+term+"%", "%"+term+"%", "%"+term+"%").
-		Limit(20).
-		Scan(&results).Error
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "gagal ambil data"})
+	if term == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "term required"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"results": results})
+	var kelurahans []models.Kelurahan
+	config.DB.
+		Preload("Kecamatan").
+		Preload("Kecamatan.Kabupaten").
+		Where("name LIKE ?", "%"+strings.TrimSpace(term)+"%").
+		Limit(20).
+		Find(&kelurahans)
+
+	results := []gin.H{}
+	for _, k := range kelurahans {
+		results = append(results, gin.H{
+			"id":        k.ID,
+			"name":      k.Name,
+			"kecamatan": k.Kecamatan.Name,
+			"kabupaten": k.Kecamatan.Kabupaten.Name,
+		})
+	}
+
+	c.JSON(http.StatusOK, results)
 }
