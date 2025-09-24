@@ -146,6 +146,21 @@ func PosbankumStore(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/jadi/admin/posbankum")
 }
 
+// ================== VIEW DOKUMEN ==================
+func PosbankumView(c *gin.Context) {
+	id := c.Param("id")
+	var posbankum models.Posbankum
+	if err := config.DB.First(&posbankum, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Dokumen tidak ditemukan: "+err.Error())
+		return
+	}
+
+	// Set header agar browser tahu ini adalah file untuk ditampilkan/diunduh
+	c.Header("Content-Disposition", "inline; filename="+filepath.Base(posbankum.Dokumen))
+	c.Header("Content-Type", "application/pdf")
+	c.File(posbankum.Dokumen)
+}
+
 // ================== EDIT FORM ==================
 func PosbankumEdit(c *gin.Context) {
 	id := c.Param("id")

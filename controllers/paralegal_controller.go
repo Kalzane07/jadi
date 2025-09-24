@@ -164,6 +164,23 @@ func ParalegalStore(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/jadi/admin/paralegal")
 }
 
+func ParalegalView(c *gin.Context) {
+	id := c.Param("id")
+	var paralegal models.Paralegal
+	if err := config.DB.
+		Preload("Posbankum").
+		Preload("Posbankum.Kelurahan").
+		Preload("Posbankum.Kelurahan.Kecamatan").
+		Preload("Posbankum.Kelurahan.Kecamatan.Kabupaten").
+		First(&paralegal, id).Error; err != nil {
+		c.String(http.StatusNotFound, err.Error())
+		return
+	}
+	c.Header("Content-Disposition", "inline; filename="+filepath.Base(paralegal.Dokumen))
+	c.Header("Content-Type", "application/pdf")
+	c.File(paralegal.Dokumen)
+}
+
 // ================== EDIT FORM ==================
 func ParalegalEdit(c *gin.Context) {
 	id := c.Param("id")

@@ -67,7 +67,7 @@
                     <h5 class="mb-0">✏️ Edit Posbankum</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="/jadi/admin/posbankum/update/{{ .Posbankum.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <form method="PUT" action="/jadi/admin/posbankum/update/{{ .Posbankum.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
 
                         <!-- Kelurahan/Desa (read-only) -->
                         <div class="mb-3">

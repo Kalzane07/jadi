@@ -143,6 +143,18 @@ func KadarkumStore(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/jadi/admin/kadarkum")
 }
 
+func KadarkumView(c *gin.Context) {
+	id := c.Param("id")
+	var kadarkum models.Kadarkum
+	if err := config.DB.First(&kadarkum, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Dokumen tidak ditemukan: "+err.Error())
+		return
+	}
+	c.Header("Content-Disposition", "inline; filename="+filepath.Base(kadarkum.Dokumen))
+	c.Header("Content-Type", "application/pdf")
+	c.File(kadarkum.Dokumen)
+}
+
 // ================== EDIT FORM ==================
 func KadarkumEdit(c *gin.Context) {
 	id := c.Param("id")

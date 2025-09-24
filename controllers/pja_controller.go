@@ -115,7 +115,7 @@ func PJAStore(c *gin.Context) {
 	os.MkdirAll(uploadPath, os.ModePerm)
 
 	// nama file unik
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	ext := filepath.Ext(file.Filename)
 	newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
 	fullPath := filepath.Join(uploadPath, newName)
@@ -139,6 +139,22 @@ func PJAStore(c *gin.Context) {
 
 	config.DB.Create(&pja)
 	c.Redirect(http.StatusFound, "/jadi/admin/pja")
+}
+
+func PJAView(c *gin.Context) {
+	id := c.Param("id")
+	var pja models.Pja
+	if err := config.DB.
+		Preload("Kelurahan").
+		Preload("Kelurahan.Kecamatan").
+		Preload("Kelurahan.Kecamatan.Kabupaten").
+		First(&pja, id).Error; err != nil {
+		c.String(http.StatusNotFound, err.Error())
+		return
+	}
+	c.Header("Content-Disposition", "inline; filename="+filepath.Base(pja.Dokumen))
+	c.Header("Content-Type", "application/pdf")
+	c.File(pja.Dokumen)
 }
 
 // ================== EDIT FORM ==================
@@ -214,7 +230,7 @@ func PJAUpdate(c *gin.Context) {
 		os.MkdirAll(uploadPath, os.ModePerm)
 
 		// nama file unik
-		rand.Seed(time.Now().UnixNano())
+		rand.NewSource(time.Now().UnixNano())
 		ext := filepath.Ext(file.Filename)
 		newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
 		newPath := filepath.Join(uploadPath, newName)
