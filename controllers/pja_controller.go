@@ -59,13 +59,15 @@ func PJAIndex(c *gin.Context) {
 		"Page":       page,
 		"Offset":     offset,
 		"TotalPages": totalPages,
+		"BaseHref":   "/jadi",
 	})
 }
 
 // ================== CREATE FORM ==================
 func PJACreate(c *gin.Context) {
 	c.HTML(http.StatusOK, "pja_create.html", gin.H{
-		"Title": "Tambah PJA",
+		"Title":    "Tambah PJA",
+		"BaseHref": "/jadi",
 	})
 }
 
@@ -80,6 +82,7 @@ func PJAStore(c *gin.Context) {
 			"Title":          "Tambah PJA",
 			"ErrorKelurahan": "❌ PJA untuk kelurahan ini sudah ada",
 			"Catatan":        catatan,
+			"BaseHref":       "/jadi",
 		})
 		return
 	}
@@ -90,6 +93,7 @@ func PJAStore(c *gin.Context) {
 			"Title":     "Tambah PJA",
 			"ErrorFile": "❌ Dokumen wajib diupload",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -99,6 +103,7 @@ func PJAStore(c *gin.Context) {
 			"Title":     "Tambah PJA",
 			"ErrorFile": "❌ Ukuran file maksimal 10MB",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -107,6 +112,7 @@ func PJAStore(c *gin.Context) {
 			"Title":     "Tambah PJA",
 			"ErrorFile": "❌ File harus berupa PDF",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -125,6 +131,7 @@ func PJAStore(c *gin.Context) {
 			"Title":     "Tambah PJA",
 			"ErrorFile": "❌ Gagal upload file",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -175,8 +182,9 @@ func PJAEdit(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "pja_edit.html", gin.H{
-		"Title": "Edit PJA",
-		"PJA":   pja,
+		"Title":    "Edit PJA",
+		"PJA":      pja,
+		"BaseHref": "/jadi",
 	})
 }
 
@@ -200,6 +208,7 @@ func PJAUpdate(c *gin.Context) {
 			"Title":          "Edit PJA",
 			"PJA":            pja,
 			"ErrorKelurahan": "❌ PJA untuk kelurahan ini sudah ada",
+			"BaseHref":       "/jadi",
 		})
 		return
 	}
@@ -214,6 +223,7 @@ func PJAUpdate(c *gin.Context) {
 				"Title":     "Edit PJA",
 				"PJA":       pja,
 				"ErrorFile": "❌ Ukuran file maksimal 10MB",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -222,6 +232,7 @@ func PJAUpdate(c *gin.Context) {
 				"Title":     "Edit PJA",
 				"PJA":       pja,
 				"ErrorFile": "❌ File harus berupa PDF",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -240,6 +251,7 @@ func PJAUpdate(c *gin.Context) {
 				"Title":     "Edit PJA",
 				"PJA":       pja,
 				"ErrorFile": "❌ Gagal upload file",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}

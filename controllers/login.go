@@ -22,7 +22,8 @@ func HashPassword(password string) (string, error) {
 // Login Page
 func ShowLogin(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", gin.H{
-		"Title": "Login",
+		"Title":    "Login",
+		"BaseHref": "/jadi",
 	})
 }
 
@@ -35,8 +36,9 @@ func DoLogin(c *gin.Context) {
 	// cari user berdasarkan username
 	if err := config.DB.Where("username = ?", username).First(&user).Error; err != nil {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"Title": "Login",
-			"error": "❌ Username tidak ditemukan",
+			"Title":    "Login",
+			"error":    "❌ Username tidak ditemukan",
+			"BaseHref": "/jadi",
 		})
 		return
 	}
@@ -52,8 +54,9 @@ func DoLogin(c *gin.Context) {
 			config.DB.Save(&user)
 		} else {
 			c.HTML(http.StatusOK, "login.html", gin.H{
-				"Title": "Login",
-				"error": "❌ Password salah",
+				"Title":    "Login",
+				"error":    "❌ Password salah",
+				"BaseHref": "/jadi",
 			})
 			return
 		}

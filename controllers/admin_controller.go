@@ -145,5 +145,6 @@ func AdminPanel(c *gin.Context) {
 		"totalPosbankum":   totalPosbankum,
 		"totalPJA":         totalPJA,
 		"totalKadarkum":    totalKadarkum,
+		"BaseHref":         "/jadi",
 	})
 }

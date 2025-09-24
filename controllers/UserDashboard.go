@@ -84,6 +84,7 @@ type DashboardData struct {
 	PersenPosbankumProvinsi float64
 	PersenKadarkumProvinsi  float64
 	PersenPjaProvinsi       float64
+	BaseHref                string
 }
 
 // helper hitung persentase aman
@@ -353,6 +354,7 @@ func UserDashboard(c *gin.Context) {
 		PersenPosbankumProvinsi: hitungPersen(tercapaiPosProv, totalKelurahanProv),
 		PersenKadarkumProvinsi:  hitungPersen(tercapaiKadProv, totalKelurahanProv),
 		PersenPjaProvinsi:       hitungPersen(tercapaiPJAProv, totalKelurahanProv),
+		BaseHref:                "/jadi",
 	}
 
 	c.HTML(http.StatusOK, "user_dashboard.html", data)

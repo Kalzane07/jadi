@@ -56,14 +56,16 @@ func UserIndex(c *gin.Context) {
 		"Page":       page,
 		"TotalPages": totalPages,
 		"Offset":     offset,
-		"user":       "admin", // nanti bisa diganti sesuai session login
+		"user":       "admin", // TODO: nanti bisa diganti sesuai session login
+		"BaseHref":   "/jadi",
 	})
 }
 
 // Show form tambah user
 func UserCreateForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "user_create.html", gin.H{
-		"Title": "Tambah User",
+		"Title":    "Tambah User",
+		"BaseHref": "/jadi",
 	})
 }
 
@@ -105,8 +107,9 @@ func UserEditForm(c *gin.Context) {
 
 	// kirim data user dengan ID ke template
 	c.HTML(http.StatusOK, "user_edit.html", gin.H{
-		"Title": "Edit User",
-		"User":  user,
+		"Title":    "Edit User",
+		"User":     user,
+		"BaseHref": "/jadi",
 	})
 }
 

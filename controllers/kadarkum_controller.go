@@ -60,13 +60,15 @@ func KadarkumIndex(c *gin.Context) {
 		"Page":       page,
 		"Offset":     offset,
 		"TotalPages": totalPages,
+		"BaseHref":   "/jadi",
 	})
 }
 
 // ================== CREATE FORM ==================
 func KadarkumCreate(c *gin.Context) {
 	c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
-		"Title": "Tambah Kadarkum",
+		"Title":    "Tambah Kadarkum",
+		"BaseHref": "/jadi",
 	})
 }
 
@@ -82,6 +84,7 @@ func KadarkumStore(c *gin.Context) {
 			"Title":          "Tambah Kadarkum",
 			"ErrorKelurahan": "❌ Kadarkum untuk kelurahan ini sudah ada",
 			"Catatan":        catatan,
+			"BaseHref":       "/jadi",
 		})
 		return
 	}
@@ -92,6 +95,7 @@ func KadarkumStore(c *gin.Context) {
 			"Title":     "Tambah Kadarkum",
 			"ErrorFile": "❌ Dokumen wajib diupload",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -102,6 +106,7 @@ func KadarkumStore(c *gin.Context) {
 			"Title":     "Tambah Kadarkum",
 			"ErrorFile": "❌ Ukuran file maksimal 10MB",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -110,6 +115,7 @@ func KadarkumStore(c *gin.Context) {
 			"Title":     "Tambah Kadarkum",
 			"ErrorFile": "❌ File harus berupa PDF",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -127,6 +133,7 @@ func KadarkumStore(c *gin.Context) {
 			"Title":     "Tambah Kadarkum",
 			"ErrorFile": "❌ Gagal upload file",
 			"Catatan":   catatan,
+			"BaseHref":  "/jadi",
 		})
 		return
 	}
@@ -175,6 +182,7 @@ func KadarkumEdit(c *gin.Context) {
 	c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
 		"Title":    "Edit Kadarkum",
 		"Kadarkum": kadarkum,
+		"BaseHref": "/jadi",
 	})
 }
 
@@ -199,6 +207,7 @@ func KadarkumUpdate(c *gin.Context) {
 			"Title":          "Edit Kadarkum",
 			"Kadarkum":       kadarkum,
 			"ErrorKelurahan": "❌ Kadarkum untuk kelurahan ini sudah ada",
+			"BaseHref":       "/jadi",
 		})
 		return
 	}
@@ -213,6 +222,7 @@ func KadarkumUpdate(c *gin.Context) {
 				"Title":     "Edit Kadarkum",
 				"Kadarkum":  kadarkum,
 				"ErrorFile": "❌ Ukuran file maksimal 10MB",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -221,6 +231,7 @@ func KadarkumUpdate(c *gin.Context) {
 				"Title":     "Edit Kadarkum",
 				"Kadarkum":  kadarkum,
 				"ErrorFile": "❌ File harus berupa PDF",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -237,6 +248,7 @@ func KadarkumUpdate(c *gin.Context) {
 				"Title":     "Edit Kadarkum",
 				"Kadarkum":  kadarkum,
 				"ErrorFile": "❌ Gagal upload file",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}

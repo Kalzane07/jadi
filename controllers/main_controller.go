@@ -29,5 +29,6 @@ func LandingPage(c *gin.Context) {
 		"TotalKadarkum":  totalKadarkum,
 		"TotalPja":       totalPja,
 		"TotalParalegal": totalParalegal,
+		"BaseHref":       "/jadi",
 	})
 }

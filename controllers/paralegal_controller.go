@@ -61,6 +61,7 @@ func ParalegalIndex(c *gin.Context) {
 		"Page":       page,
 		"Offset":     offset,
 		"TotalPages": totalPages,
+		"BaseHref":   "/jadi",
 	})
 }
 
@@ -72,6 +73,7 @@ func ParalegalCreate(c *gin.Context) {
 	c.HTML(http.StatusOK, "paralegal_create.html", gin.H{
 		"Title":      "Tambah Paralegal",
 		"Posbankums": posbankums,
+		"BaseHref":   "/jadi",
 	})
 }
 
@@ -124,6 +126,7 @@ func ParalegalStore(c *gin.Context) {
 				"Title":     "Tambah Paralegal",
 				"ErrorFile": "❌ Ukuran file maksimal 10MB",
 				"Nama":      nama,
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -132,6 +135,7 @@ func ParalegalStore(c *gin.Context) {
 				"Title":     "Tambah Paralegal",
 				"ErrorFile": "❌ File harus berupa PDF",
 				"Nama":      nama,
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -148,6 +152,7 @@ func ParalegalStore(c *gin.Context) {
 				"Title":     "Tambah Paralegal",
 				"ErrorFile": "❌ Gagal upload file",
 				"Nama":      nama,
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -206,6 +211,7 @@ func ParalegalEdit(c *gin.Context) {
 		"Title":      "Edit Paralegal",
 		"Paralegal":  paralegal,
 		"Posbankums": posbankums,
+		"BaseHref":   "/jadi",
 	})
 }
 
@@ -229,6 +235,7 @@ func ParalegalUpdate(c *gin.Context) {
 				"Title":     "Edit Paralegal",
 				"Paralegal": paralegal,
 				"ErrorFile": "❌ Ukuran file maksimal 10MB",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -237,6 +244,7 @@ func ParalegalUpdate(c *gin.Context) {
 				"Title":     "Edit Paralegal",
 				"Paralegal": paralegal,
 				"ErrorFile": "❌ File harus berupa PDF",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}
@@ -253,6 +261,7 @@ func ParalegalUpdate(c *gin.Context) {
 				"Title":     "Edit Paralegal",
 				"Paralegal": paralegal,
 				"ErrorFile": "❌ Gagal upload file",
+				"BaseHref":  "/jadi",
 			})
 			return
 		}

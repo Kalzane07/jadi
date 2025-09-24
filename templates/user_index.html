@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Posbankum</title>
+    <title>Data User</title>
     <!-- Tailwind CSS -->
     <link href="/jadi/static/output.css" rel="stylesheet">
     <style>
@@ -50,15 +50,15 @@
         <h4 class="text-xl font-bold text-white mb-8">Admin Panel</h4>
         <ul class="space-y-2">
             <li><a class="nav-link" href="{{ .BaseHref }}/admin">🏠 Dashboard</a></li>
-            <li><a class="nav-link bg-gray-700 text-white" href="{{ .BaseHref }}/admin/posbankum">📂 Posbankum</a></li>
+            <li><a class="nav-link" href="{{ .BaseHref }}/admin/posbankum">📂 Posbankum</a></li>
             <li><a class="nav-link" href="{{ .BaseHref }}/admin/paralegal">👥 Paralegal</a></li>
             <li><a class="nav-link" href="{{ .BaseHref }}/admin/kadarkum">📘 Kadarkum</a></li>
             <li><a class="nav-link" href="{{ .BaseHref }}/admin/pja">📑 PJA</a></li>
             <li>
                 <hr class="my-4 border-gray-600">
             </li>
-            <li class="px-3 text-sm font-semibold text-gray-500">Master Wilayah</li>
-            <li><a class="nav-link" href="{{ .BaseHref }}/admin/users">👤 Users</a></li>
+            <li class="px-3 text-sm font-semibold text-gray-500">Master</li>
+            <li><a class="nav-link bg-gray-700 text-white" href="{{ .BaseHref }}/admin/users">👤 Users</a></li>
             <li><a class="nav-link submenu" href="{{ .BaseHref }}/admin/provinsi">🌍 Provinsi</a></li>
             <li><a class="nav-link submenu" href="{{ .BaseHref }}/admin/kabupaten">🏙️ Kabupaten/Kota</a></li>
             <li><a class="nav-link submenu" href="{{ .BaseHref }}/admin/kecamatan">📌 Kecamatan</a></li>
@@ -85,16 +85,15 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <h2 class="text-3xl font-bold mb-4 md:mb-0">{{ .Title }}</h2>
                 <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
-                    <!-- ACTION FORM SUDAH DIPERBAIKI DI SINI -->
-                    <form method="GET" action="{{ .BaseHref }}/admin/posbankum" class="flex items-center gap-2 flex-grow">
-                        <input type="text" name="q" value="{{ .Search }}" placeholder="Cari kelurahan..."
+                    <form method="GET" action="{{ .BaseHref }}/admin/users" class="flex items-center gap-2 flex-grow">
+                        <input type="text" name="q" value="{{ .Search }}" placeholder="Cari user..."
                             class="flex-grow p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button
                             class="bg-blue-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-blue-700 transition duration-300">
                             🔍 Cari
                         </button>
                     </form>
-                    <a href="{{ .BaseHref }}/admin/posbankum/create"
+                    <a href="{{ .BaseHref }}/admin/users/create"
                         class="bg-green-600 text-white font-medium py-2 px-6 rounded-md shadow-md hover:bg-green-700 transition duration-300 text-center">
                         ➕ Tambah
                     </a>
@@ -107,43 +106,29 @@
                     <thead class="bg-gray-800 text-gray-200">
                         <tr>
                             <th class="py-3 px-4 rounded-tl-lg">No</th>
-                            <th class="py-3 px-4">Kelurahan/Desa</th>
-                            <th class="py-3 px-4">Kecamatan</th>
-                            <th class="py-3 px-4">Kabupaten</th>
-                            <th class="py-3 px-4">Dokumen</th>
-                            <th class="py-3 px-4">Catatan</th>
+                            <th class="py-3 px-4">Username</th>
+                            <th class="py-3 px-4">Role</th>
                             <th class="py-3 px-4 rounded-tr-lg">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{ $start := .Offset }}
-                        {{ range $i, $p := .Posbankums }}
+                        {{ range $i, $u := .Users }}
                         <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-150">
                             <td class="py-3 px-4">{{ add $start (add $i 1) }}</td>
-                            <td class="py-3 px-4">{{ $p.Kelurahan.Name }}</td>
-                            <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Name }}</td>
-                            <td class="py-3 px-4">{{ $p.Kelurahan.Kecamatan.Kabupaten.Name }}</td>
+                            <td class="py-3 px-4">{{ $u.Username }}</td>
+                            <td class="py-3 px-4">{{ $u.Role }}</td>
                             <td class="py-3 px-4">
-                                {{ if $p.Dokumen }}
-                                <a href="{{ $.BaseHref }}/admin/posbankum/view/{{ $p.ID }}" target="_blank"
-                                    class="text-blue-600 hover:underline font-medium">📄 Lihat PDF</a>
-                                {{ else }}
-                                <span class="text-gray-400">Belum ada</span>
-                                {{ end }}
-                            </td>
-                            <td class="py-3 px-4">{{ $p.Catatan }}</td>
-                            <td class="py-3 px-4">
-                                <form action="{{ $.BaseHref }}/admin/posbankum/edit/{{ $p.ID }}" method="POST" class="inline-block">
-                                    <button type="submit" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2 bg-transparent border-none p-0 cursor-pointer">✏️ Edit</button>
-                                </form>
-                                <a href="{{ $.BaseHref }}/admin/posbankum/delete/{{ $p.ID }}"
-                                    onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
+                                <a href="{{ $.BaseHref }}/admin/users/edit/{{ $u.ID }}"
+                                    class="text-yellow-500 hover:text-yellow-600 font-medium mr-2">✏️ Edit</a>
+                                <a href="{{ $.BaseHref }}/admin/users/delete/{{ $u.ID }}"
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?');"
                                     class="text-red-500 hover:text-red-600 font-medium">🗑️ Hapus</a>
                             </td>
                         </tr>
                         {{ else }}
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-gray-500">Belum ada data Posbankum</td>
+                            <td colspan="4" class="text-center py-4 text-gray-500">Belum ada data user</td>
                         </tr>
                         {{ end }}
                     </tbody>
@@ -156,19 +141,19 @@
                     {{ if gt .Page 1 }}
                     <li>
                         <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition"
-                            href="{{ $.BaseHref }}/admin/posbankum?page={{ sub .Page 1 }}&q={{ .Search }}">← Prev</a>
+                            href="{{ $.BaseHref }}/admin/users?page={{ sub .Page 1 }}&q={{ .Search }}">← Prev</a>
                     </li>
                     {{ end }}
                     {{ range $i := iter .TotalPages }}
                     <li class="{{ if eq $.Page (add $i 1) }}active{{ end }}">
                         <a class="px-4 py-2 rounded-md {{ if eq $.Page (add $i 1) }}bg-blue-600 text-white{{ else }}bg-white text-gray-700 border border-gray-300{{ end }} hover:bg-blue-700 hover:text-white transition"
-                            href="{{ $.BaseHref }}/admin/posbankum?page={{ add $i 1 }}&q={{ $.Search }}">{{ add $i 1 }}</a>
+                            href="{{ $.BaseHref }}/admin/users?page={{ add $i 1 }}&q={{ $.Search }}">{{ add $i 1 }}</a>
                     </li>
                     {{ end }}
                     {{ if lt .Page .TotalPages }}
                     <li>
                         <a class="px-4 py-2 rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-200 transition"
-                            href="{{ $.BaseHref }}/admin/posbankum?page={{ add .Page 1 }}&q={{ .Search }}">Next →</a>
+                            href="{{ $.BaseHref }}/admin/users?page={{ add .Page 1 }}&q={{ .Search }}">Next →</a>
                     </li>
                     {{ end }}
                 </ul>
