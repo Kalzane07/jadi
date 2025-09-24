@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 23, 2025 at 06:33 PM
+-- Generation Time: Sep 24, 2025 at 12:16 AM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.16
 
@@ -2079,7 +2079,7 @@ ALTER TABLE `pjas`
 -- AUTO_INCREMENT for table `posbankums`
 --
 ALTER TABLE `posbankums`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=198;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=199;
 
 --
 -- AUTO_INCREMENT for table `provinsis`
