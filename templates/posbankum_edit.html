@@ -67,14 +67,17 @@
                     <h5 class="mb-0">✏️ Edit Posbankum</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Bagian yang perlu diubah -->
                     <form method="POST" action="{{ .BaseHref }}/admin/posbankum/update/{{ .Posbankum.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
-
+                        <!-- Tambahkan input hidden ini -->
+                        <input type="hidden" name="_method" value="PUT">
+                        
                         <!-- Kelurahan/Desa (read-only) -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Kelurahan/Desa</label>
                             <input type="text" class="form-control" 
-                                   value="{{ .Posbankum.Kelurahan.Name }} ({{ .Posbankum.Kelurahan.Kecamatan.Name }} - {{ .Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }})" 
-                                   readonly>
+                                value="{{ .Posbankum.Kelurahan.Name }} ({{ .Posbankum.Kelurahan.Kecamatan.Name }} - {{ .Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }})" 
+                                readonly>
                             <!-- tetap kirim hidden id supaya ke controller -->
                             <input type="hidden" name="kelurahan_id" value="{{ .Posbankum.KelurahanID }}">
                         </div>

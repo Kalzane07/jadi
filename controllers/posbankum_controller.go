@@ -169,7 +169,7 @@ func PosbankumView(c *gin.Context) {
 }
 
 // ================== EDIT FORM ==================
-func PosbankumEdit(c *gin.Context) {
+func PosbankumEdit(c *gin.Context) { // Ubah nama fungsi dari PosbankumEdit menjadi PosbankumEditForm
 	id := c.Param("id")
 	var posbankum models.Posbankum
 	if err := config.DB.

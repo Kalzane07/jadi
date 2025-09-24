@@ -67,50 +67,53 @@
                     <h5 class="mb-0">✏️ Edit Paralegal</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ .BaseHref }}/admin/paralegal/update/{{ .Paralegal.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
-    
-                        <!-- Nama -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Nama Paralegal</label>
-                            <input type="text" name="nama" class="form-control" value="{{ .Paralegal.Nama }}" required>
-                            <div class="invalid-feedback">Nama wajib diisi.</div>
+                <!-- Bagian yang perlu diubah -->
+                <form method="POST" action="{{ .BaseHref }}/admin/paralegal/update/{{ .Paralegal.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <!-- Tambahkan input hidden ini -->
+                    <input type="hidden" name="_method" value="PUT">
+                    
+                    <!-- Nama -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nama Paralegal</label>
+                        <input type="text" name="nama" class="form-control" value="{{ .Paralegal.Nama }}" required>
+                        <div class="invalid-feedback">Nama wajib diisi.</div>
+                    </div>
+
+                    <!-- Posbankum (read-only) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Posbankum</label>
+                        <input type="text" class="form-control" 
+                            value="{{ .Paralegal.Posbankum.Kelurahan.Name }} ({{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Name }} - {{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }})" 
+                            readonly>
+                        <input type="hidden" name="posbankum_id" value="{{ .Paralegal.PosbankumID }}">
+                    </div>
+
+                    <!-- Dokumen -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Upload Dokumen Baru</label>
+                        <input type="file" name="dokumen" accept="application/pdf" class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
+                        <div class="form-text text-muted">
+                            File PDF, maksimal 10MB. <br>
+                            Dokumen sekarang:
+                            {{ if .Paralegal.Dokumen }}
+                                <a href="{{ $.BaseHref }}/{{ .Paralegal.Dokumen }}" target="_blank">📄 Lihat PDF</a>
+                            {{ else }}
+                                <span class="text-muted">Belum ada</span>
+                            {{ end }}
                         </div>
-    
-                        <!-- Posbankum (read-only) -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Posbankum</label>
-                            <input type="text" class="form-control" 
-                                   value="{{ .Paralegal.Posbankum.Kelurahan.Name }} ({{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Name }} - {{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }})" 
-                                   readonly>
-                            <input type="hidden" name="posbankum_id" value="{{ .Paralegal.PosbankumID }}">
+                        <div class="invalid-feedback">
+                            {{ if .ErrorFile }}
+                                {{ .ErrorFile }}
+                            {{ end }}
                         </div>
-    
-                        <!-- Dokumen -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Upload Dokumen Baru</label>
-                            <input type="file" name="dokumen" accept="application/pdf" class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
-                            <div class="form-text text-muted">
-                                File PDF, maksimal 10MB. <br>
-                                Dokumen sekarang:
-                                {{ if .Paralegal.Dokumen }}
-                                    <a href="{{ $.BaseHref }}/{{ .Paralegal.Dokumen }}" target="_blank">📄 Lihat PDF</a>
-                                {{ else }}
-                                    <span class="text-muted">Belum ada</span>
-                                {{ end }}
-                            </div>
-                            <div class="invalid-feedback">
-                                {{ if .ErrorFile }}
-                                    {{ .ErrorFile }}
-                                {{ end }}
-                            </div>
-                        </div>
-    
-                        <!-- Tombol -->
-                        <div class="d-flex justify-content-end">
-                            <a href="{{ .BaseHref }}/admin/paralegal" class="btn btn-secondary me-2">← Batal</a>
-                            <button type="submit" class="btn btn-success">💾 Update</button>
-                        </div>
-                    </form>
+                    </div>
+
+                    <!-- Tombol -->
+                    <div class="d-flex justify-content-end">
+                        <a href="{{ .BaseHref }}/admin/paralegal" class="btn btn-secondary me-2">← Batal</a>
+                        <button type="submit" class="btn btn-success">💾 Update</button>
+                    </div>
+                </form>
                 </div>
             </div>
         </div>

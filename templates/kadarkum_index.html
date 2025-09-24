@@ -132,12 +132,13 @@
                             </td>
                             <td class="py-3 px-4">{{ $k.Catatan }}</td>
                             <td class="py-3 px-4">
-                                <form action="{{ $.BaseHref }}/admin/kadarkum/edit/{{ $k.ID }}" method="POST" class="inline-block">
-                                    <button type="submit" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2 bg-transparent border-none p-0 cursor-pointer">✏️ Edit</button>
+                                <a href="{{ $.BaseHref }}/admin/kadarkum/edit/{{ $k.ID }}" class="text-yellow-500 hover:text-yellow-600 font-medium mr-2">✏️ Edit</a>
+                                
+                                <form action="{{ $.BaseHref }}/admin/kadarkum/delete/{{ $k.ID }}" method="POST" class="inline-block">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="text-red-500 hover:text-red-600 font-medium bg-transparent border-none p-0 cursor-pointer"
+                                        onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">🗑️ Hapus</button>
                                 </form>
-                                <a href="{{ $.BaseHref }}/admin/kadarkum/delete/{{ $k.ID }}"
-                                    onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"
-                                    class="text-red-500 hover:text-red-600 font-medium">🗑️ Hapus</a>
                             </td>
                         </tr>
                         {{ else }}

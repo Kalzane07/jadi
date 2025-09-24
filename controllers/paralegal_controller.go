@@ -91,11 +91,11 @@ func PosbankumSearch(c *gin.Context) {
 
 	query := config.DB.Table("posbankums").
 		Select(`
-			posbankums.id,
-			CONCAT(kelurahans.name, " - ", kecamatans.name, " - ", kabupatens.name) as text,
-			kelurahans.name as kelurahan,
-			kecamatans.name as kecamatan,
-			kabupatens.name as kabupaten`).
+            posbankums.id,
+            CONCAT(kelurahans.name, " - ", kecamatans.name, " - ", kabupatens.name) as text,
+            kelurahans.name as kelurahan,
+            kecamatans.name as kecamatan,
+            kabupatens.name as kabupaten`).
 		Joins("JOIN kelurahans ON kelurahans.id = posbankums.kelurahan_id").
 		Joins("JOIN kecamatans ON kecamatans.id = kelurahans.kecamatan_id").
 		Joins("JOIN kabupatens ON kabupatens.id = kecamatans.kabupaten_id")
