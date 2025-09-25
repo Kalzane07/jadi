@@ -1,20 +1,24 @@
 package controllers
 
 import (
+	"fmt"
+	"log"
 	"math"
 	"net/http"
 	"strconv"
+
+	"regexp"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"go-admin/config"
 	"go-admin/models"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // ================= Util =================
 
-// hashPassword -> bikin hash dari password plaintext
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
@@ -75,28 +79,89 @@ func UserCreate(c *gin.Context) {
 	password := c.PostForm("password")
 	role := c.PostForm("role")
 
-	// hash password
+	// Validasi password menggunakan fungsi validatePassword
+	if err := validatePassword(password); err != nil {
+		log.Printf("Validasi password gagal: %v", err)
+		c.HTML(http.StatusBadRequest, "user_create.html", gin.H{
+
+			"Title":         "Tambah User",
+			"ErrorPassword": err.Error(),
+			"BaseHref":      "/jadi",
+		})
+		return
+	}
+
+	// Hash password menggunakan bcrypt
 	hashed, err := hashPassword(password)
 	if err != nil {
+		log.Printf("Gagal hash password: %v", err)
 		c.String(http.StatusInternalServerError, "Gagal hash password")
 		return
 	}
 
+	// Membuat objek user baru
 	user := models.User{
 		Username: username,
 		Password: hashed,
 		Role:     role,
 	}
 
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.String(http.StatusInternalServerError, "Gagal simpan user")
+	// Cek apakah username sudah ada
+	var existingUser models.User
+	if err := config.DB.Where("username = ?", username).First(&existingUser).Error; err == nil {
+		log.Printf("Username sudah ada: %s", username)
+		c.HTML(http.StatusBadRequest, "user_create.html", gin.H{
+			"Title":         "Tambah User",
+			"ErrorUsername": "Username sudah ada",
+
+			"BaseHref": "/jadi",
+			"Username": username,
+		})
 		return
 	}
 
+	// Menyimpan user ke database
+	if err := config.DB.Create(&user).Error; err != nil {
+		log.Printf("Gagal simpan user ke database: %v", err)
+		c.String(http.StatusInternalServerError, "Gagal simpan user")
+		return
+	}
 	c.Redirect(http.StatusFound, "/jadi/admin/users")
 }
 
-// Show form edit
+// validatePassword -> validasi password
+func validatePassword(password string) error {
+	if len(password) < 6 {
+		return fmt.Errorf("password harus minimal 6 karakter")
+	}
+	if !hasUpperCase(password) || !hasSymbol(password) {
+		return fmt.Errorf("password harus mengandung setidaknya 1 huruf besar dan 1 simbol")
+	}
+	return nil
+
+}
+func hasUpperCase(s string) bool {
+	for _, r := range s {
+		if r >= 'A' && r <= 'Z' {
+			return true
+		}
+	}
+
+	return false
+}
+
+// hasSymbol -> cek apakah string mengandung simbol
+func hasSymbol(s string) bool {
+	// Definisi regular expression untuk simbol yang diizinkan
+	pattern := `[!@#$%^&*()]`
+
+	// Mencocokkan string dengan regular expression
+	matched, _ := regexp.MatchString(pattern, s)
+	return matched
+
+}
+
+// UserEditForm -> menampilkan form edit user
 func UserEditForm(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
@@ -113,7 +178,7 @@ func UserEditForm(c *gin.Context) {
 	})
 }
 
-// Update user
+// UserUpdate -> update data user
 func UserUpdate(c *gin.Context) {
 	id := c.Param("id")
 	var user models.User
@@ -143,7 +208,7 @@ func UserUpdate(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/jadi/admin/users")
 }
 
-// Hapus user
+// UserDelete -> hapus user
 func UserDelete(c *gin.Context) {
 	id := c.Param("id")
 	idInt, _ := strconv.Atoi(id)

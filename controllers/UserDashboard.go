@@ -1,14 +1,18 @@
 package controllers
 
 import (
+	"fmt"
+	"log"
 	"mime"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"go-admin/config"
 	"go-admin/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jung-kurt/gofpdf"
 )
 
 // ==================== STRUCT BARU UNTUK PARALEGAL ====================
@@ -90,6 +94,7 @@ type DashboardData struct {
 	PersenPosbankumProvinsi float64
 	PersenKadarkumProvinsi  float64
 	PersenPjaProvinsi       float64
+	AllKabupatens           []models.Kabupaten // Data untuk list checkbox wilayah
 	BaseHref                string
 }
 
@@ -332,6 +337,7 @@ func UserDashboard(c *gin.Context) {
 		PersenPosbankumProvinsi: hitungPersen(tercapaiPosProv, totalKelurahanProv),
 		PersenKadarkumProvinsi:  hitungPersen(tercapaiKadProv, totalKelurahanProv),
 		PersenPjaProvinsi:       hitungPersen(tercapaiPJAProv, totalKelurahanProv),
+		AllKabupatens:           provinsi.Kabupatens, // Kirim data semua kabupaten
 		BaseHref:                "/jadi",
 	}
 
@@ -392,4 +398,187 @@ func ViewDocument(c *gin.Context) {
 	c.Header("Content-Disposition", "inline; filename="+fileName)
 	c.Header("Content-Type", contentType)
 	c.File(filePath)
+}
+func CetakPDF(c *gin.Context) {
+	kategoriTerpilih := c.PostFormArray("kategori")
+	wilayahTerpilih := c.PostFormArray("wilayah")
+
+	if len(kategoriTerpilih) == 0 || len(wilayahTerpilih) == 0 {
+		c.String(http.StatusBadRequest, "Harap pilih minimal satu kategori dan satu wilayah.")
+		return
+	}
+
+	// ======================= Ambil Data Provinsi =======================
+	var provinsi models.Provinsi
+	if err := config.DB.Preload("Kabupatens.Kecamatans.Kelurahans").
+		First(&provinsi).Error; err != nil {
+		c.String(http.StatusInternalServerError, "❌ Tidak ada provinsi di database")
+		return
+	}
+
+	// ======================= Hitung Summary =======================
+	summaries := make(map[string][]KabupatenSummary)
+
+	for _, kategori := range kategoriTerpilih {
+		hasil := []KabupatenSummary{}
+
+		for _, kab := range provinsi.Kabupatens {
+			// FIX: Cek apakah kabupaten ini ada di dalam daftar wilayah yang dipilih
+			isWilayahTerpilih := false
+			for _, w := range wilayahTerpilih {
+				if w == kab.Name {
+					isWilayahTerpilih = true
+					break
+				}
+			}
+			if !isWilayahTerpilih {
+				continue // Lewati kabupaten ini jika tidak dipilih
+			}
+
+			totalKab := 0
+			tercapaiKab := 0
+			kecSummaries := []KecamatanSummary{}
+
+			for _, kec := range kab.Kecamatans {
+				totalKec := len(kec.Kelurahans)
+				tercapaiKec := 0
+				kelDocs := []KelurahanDokumen{}
+
+				for _, kel := range kec.Kelurahans {
+					tercapai := 0
+
+					switch kategori {
+					case "posbankum":
+						var pos []models.Posbankum
+						config.DB.Where("kelurahan_id = ?", kel.ID).Find(&pos)
+						if len(pos) > 0 {
+							tercapai = 1
+						}
+					case "kadarkum":
+						var kad []models.Kadarkum
+						config.DB.Where("kelurahan_id = ?", kel.ID).Find(&kad)
+						if len(kad) > 0 {
+							tercapai = 1
+						}
+					case "pja":
+						var pjas []models.Pja
+						config.DB.Where("kelurahan_id = ?", kel.ID).Find(&pjas)
+						if len(pjas) > 0 {
+							tercapai = 1
+						}
+					case "paralegal":
+						var paralegalCount int64
+						config.DB.Table("paralegals").
+							Joins("JOIN posbankums ON posbankums.id = paralegals.posbankum_id").
+							Where("posbankums.kelurahan_id = ?", kel.ID).
+							Count(&paralegalCount)
+						if paralegalCount > 0 {
+							tercapai = 1
+						}
+					}
+
+					if tercapai == 1 {
+						tercapaiKec++
+					}
+
+					kelDocs = append(kelDocs, KelurahanDokumen{
+						NamaKelurahan: kel.Name,
+						Total:         1,
+						Tercapai:      tercapai,
+						Persentase:    hitungPersen(tercapai, 1),
+					})
+				}
+
+				kecSummaries = append(kecSummaries, KecamatanSummary{
+					NamaKecamatan: kec.Name,
+					Total:         totalKec,
+					Tercapai:      tercapaiKec,
+					Persentase:    hitungPersen(tercapaiKec, totalKec),
+					Kelurahans:    kelDocs,
+				})
+
+				totalKab += totalKec
+				tercapaiKab += tercapaiKec
+			}
+
+			hasil = append(hasil, KabupatenSummary{
+				NamaKabupaten: kab.Name,
+				Total:         totalKab,
+				Tercapai:      tercapaiKab,
+				Persentase:    hitungPersen(tercapaiKab, totalKab),
+				Kecamatans:    kecSummaries,
+			})
+		}
+
+		summaries[strings.ToLower(kategori)] = hasil
+	}
+
+	// ======================= Setup PDF =======================
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.AddPage()
+	pdf.SetFont("Arial", "B", 14)
+
+	// Judul
+	pdf.Cell(0, 10, "LAPORAN BASISDATA PENYULUH HUKUM")
+	pdf.Ln(12)
+
+	// Loop kategori
+	for _, kategori := range kategoriTerpilih {
+		k := strings.ToLower(kategori)
+		dataKab := summaries[k]
+
+		// Header kategori
+		pdf.SetFont("Arial", "B", 12)
+		pdf.Cell(0, 8, strings.ToUpper(kategori))
+		pdf.Ln(10)
+
+		// Header tabel
+		pdf.SetFont("Arial", "B", 10)
+		pdf.CellFormat(80, 7, "Kabupaten/Kecamatan/Kelurahan Desa", "1", 0, "", false, 0, "")
+		pdf.CellFormat(40, 7, "Jumlah", "1", 0, "C", false, 0, "")
+		pdf.CellFormat(30, 7, "Persentase", "1", 0, "C", false, 0, "")
+		pdf.CellFormat(40, 7, "Status", "1", 1, "C", false, 0, "")
+
+		// Loop kabupaten
+		for _, kab := range dataKab {
+			pdf.SetFont("Arial", "B", 10)
+			pdf.CellFormat(80, 7, kab.NamaKabupaten, "1", 0, "", false, 0, "")
+			pdf.CellFormat(40, 7, fmt.Sprintf("%d/%d", kab.Tercapai, kab.Total), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(30, 7, fmt.Sprintf("%.2f%%", kab.Persentase), "1", 0, "C", false, 0, "")
+			pdf.CellFormat(40, 7, "-", "1", 1, "C", false, 0, "")
+
+			// Loop kecamatan
+			for _, kec := range kab.Kecamatans {
+				pdf.SetFont("Arial", "I", 9)
+				pdf.CellFormat(80, 7, fmt.Sprintf("   Kecamatan %s", kec.NamaKecamatan), "1", 0, "", false, 0, "")
+				pdf.CellFormat(40, 7, fmt.Sprintf("%d/%d", kec.Tercapai, kec.Total), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(30, 7, fmt.Sprintf("%.2f%%", kec.Persentase), "1", 0, "C", false, 0, "")
+				pdf.CellFormat(40, 7, "-", "1", 1, "C", false, 0, "")
+
+				// Loop kelurahan
+				for _, kel := range kec.Kelurahans {
+					status := "Belum ada"
+					if kel.Tercapai > 0 {
+						status = "Sudah ada"
+					}
+
+					pdf.SetFont("Arial", "", 9)
+					pdf.CellFormat(80, 7, fmt.Sprintf("      Kelurahan/Desa %s", kel.NamaKelurahan), "1", 0, "", false, 0, "")
+					pdf.CellFormat(40, 7, "-", "1", 0, "C", false, 0, "")
+					pdf.CellFormat(30, 7, "-", "1", 0, "C", false, 0, "")
+					pdf.CellFormat(40, 7, status, "1", 1, "C", false, 0, "")
+				}
+			}
+		}
+
+		pdf.Ln(8)
+	}
+
+	// ======================= Output =======================
+	c.Header("Content-Type", "application/pdf")
+	c.Header("Content-Disposition", "inline; filename=laporan_penyuluh_hukum.pdf")
+	if err := pdf.Output(c.Writer); err != nil {
+		log.Println("pdf write err:", err)
+		c.String(http.StatusInternalServerError, "Gagal membuat PDF")
+	}
 }

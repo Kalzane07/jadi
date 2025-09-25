@@ -116,5 +116,7 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	user.Use(controllers.AuthRequired(), controllers.RoleRequired("user"))
 	{
 		user.GET("/", controllers.UserDashboard)
+		user.POST("/cetak-pdf", controllers.CetakPDF)
 	}
+
 }
