@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>{{ .Title }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; }
+        body {
+            font-family: Arial, sans-serif;
+        }
+
         .sidebar {
             height: 100vh;
             width: 240px;
@@ -16,21 +20,39 @@
             background-color: #212529;
             padding-top: 60px;
         }
+
         .sidebar a {
             padding: 12px 20px;
             display: block;
             color: #adb5bd;
             text-decoration: none;
         }
+
         .sidebar a:hover {
             background-color: #495057;
             color: #fff;
         }
-        .sidebar .submenu { padding-left: 30px; font-size: 14px; }
-        .content { margin-left: 240px; padding: 20px; }
-        .navbar { position: fixed; top: 0; left: 240px; right: 0; z-index: 1030; }
+
+        .sidebar .submenu {
+            padding-left: 30px;
+            font-size: 14px;
+        }
+
+        .content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 240px;
+            right: 0;
+            z-index: 1030;
+        }
     </style>
 </head>
+
 <body class="bg-light">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -58,7 +80,7 @@
             <span class="text-light">👤 {{ .user }}</span>
         </div>
     </nav>
-    
+
     <!-- Content -->
     <div class="content mt-5 pt-4">
         <div class="container">
@@ -67,44 +89,49 @@
                     <h5 class="mb-0">✏️ Edit Paralegal</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ .BaseHref }}/admin/paralegal/update/{{ .Paralegal.ID }}" enctype="multipart/form-data" class="needs-validation" novalidate>
-    
+                    <!-- Bagian yang perlu diubah -->
+                    <form method="POST" action="{{ .BaseHref }}/admin/paralegal/update/{{ .Paralegal.ID }}"
+                        enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <!-- Tambahkan input hidden ini -->
+                        <input type="hidden" name="_method" value="PUT">
+
                         <!-- Nama -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Nama Paralegal</label>
                             <input type="text" name="nama" class="form-control" value="{{ .Paralegal.Nama }}" required>
                             <div class="invalid-feedback">Nama wajib diisi.</div>
                         </div>
-    
+
                         <!-- Posbankum (read-only) -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Posbankum</label>
-                            <input type="text" class="form-control" 
-                                   value="{{ .Paralegal.Posbankum.Kelurahan.Name }} ({{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Name }} - {{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }})" 
-                                   readonly>
+                            <input type="text" class="form-control"
+                                value="{{ .Paralegal.Posbankum.Kelurahan.Name }} ({{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Name }} - {{ .Paralegal.Posbankum.Kelurahan.Kecamatan.Kabupaten.Name }})"
+                                readonly>
                             <input type="hidden" name="posbankum_id" value="{{ .Paralegal.PosbankumID }}">
                         </div>
-    
+
                         <!-- Dokumen -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Upload Dokumen Baru</label>
-                            <input type="file" name="dokumen" accept="application/pdf" class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
+                            <input type="file" name="dokumen" accept="application/pdf"
+                                class="form-control {{ if .ErrorFile }}is-invalid{{ end }}">
                             <div class="form-text text-muted">
                                 File PDF, maksimal 10MB. <br>
                                 Dokumen sekarang:
                                 {{ if .Paralegal.Dokumen }}
-                                    <a href="{{ $.BaseHref }}/{{ .Paralegal.Dokumen }}" target="_blank">📄 Lihat PDF</a>
+                                <a href="{{ $.BaseHref }}/{{ .Paralegal.Dokumen }}" target="_blank">📄 Lihat PDF</a>
                                 {{ else }}
-                                    <span class="text-muted">Belum ada</span>
+                                <span class="text-muted">Belum ada</span>
                                 {{ end }}
                             </div>
                             <div class="invalid-feedback">
                                 {{ if .ErrorFile }}
-                                    {{ .ErrorFile }}
+                                {{ .ErrorFile }}
                                 {{ end }}
                             </div>
                         </div>
-    
+
                         <!-- Tombol -->
                         <div class="d-flex justify-content-end">
                             <a href="{{ .BaseHref }}/admin/paralegal" class="btn btn-secondary me-2">← Batal</a>
@@ -115,7 +142,7 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         (() => {
@@ -133,4 +160,5 @@
         })()
     </script>
 </body>
+
 </html>

@@ -118,12 +118,20 @@
                             <td class="py-3 px-4">{{ add $start (add $i 1) }}</td>
                             <td class="py-3 px-4">{{ $u.Username }}</td>
                             <td class="py-3 px-4">{{ $u.Role }}</td>
+                            <!-- Bagian yang perlu diubah -->
                             <td class="py-3 px-4">
                                 <a href="{{ $.BaseHref }}/admin/users/edit/{{ $u.ID }}"
                                     class="text-yellow-500 hover:text-yellow-600 font-medium mr-2">✏️ Edit</a>
-                                <a href="{{ $.BaseHref }}/admin/users/delete/{{ $u.ID }}"
-                                    onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?');"
-                                    class="text-red-500 hover:text-red-600 font-medium">🗑️ Hapus</a>
+
+                                <!-- Ubah link hapus menjadi form -->
+                                <form action="{{ $.BaseHref }}/admin/users/delete/{{ $u.ID }}" method="POST"
+                                    style="display: inline;">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit"
+                                        class="text-red-500 hover:text-red-600 font-medium bg-transparent border-0 p-0"
+                                        onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?');">🗑️
+                                        Hapus</button>
+                                </form>
                             </td>
                         </tr>
                         {{ else }}

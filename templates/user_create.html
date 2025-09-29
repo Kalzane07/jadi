@@ -92,7 +92,7 @@
                             <input type="text" name="username"
                                 class="form-control {{ if .ErrorUsername }}is-invalid{{ end }}" value="{{ .Username }}"
                                 required>
-                            <div class="invalid-feedback">
+                            <div class="text-danger">
                                 {{ if .ErrorUsername }}
                                 {{ .ErrorUsername }}
                                 {{ else }}

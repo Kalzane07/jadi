@@ -1,19 +1,17 @@
 package controllers
 
 import (
-	"fmt"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"go-admin/config"
 	"go-admin/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -123,9 +121,9 @@ func KadarkumStore(c *gin.Context) {
 	uploadPath := "uploads/kadarkum"
 	os.MkdirAll(uploadPath, os.ModePerm)
 
-	// generate nama file unik (timestamp + random)
+	// generate nama file unik menggunakan uuid
 	ext := filepath.Ext(file.Filename)
-	newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
+	newName := uuid.New().String() + ext
 	fullPath := filepath.Join(uploadPath, newName)
 
 	if err := c.SaveUploadedFile(file, fullPath); err != nil {
@@ -239,8 +237,9 @@ func KadarkumUpdate(c *gin.Context) {
 		uploadPath := "uploads/kadarkum"
 		os.MkdirAll(uploadPath, os.ModePerm)
 
+		// generate nama file unik menggunakan uuid
 		ext := filepath.Ext(file.Filename)
-		newName := fmt.Sprintf("%d_%d%s", time.Now().UnixNano(), rand.Intn(1000), ext)
+		newName := uuid.New().String() + ext
 		newPath := filepath.Join(uploadPath, newName)
 
 		if err := c.SaveUploadedFile(file, newPath); err != nil {

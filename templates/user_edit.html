@@ -85,8 +85,11 @@
                     <h5 class="mb-0">✏️ Edit User</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Bagian yang perlu diubah -->
                     <form method="POST" action="{{ .BaseHref }}/admin/users/update/{{ .User.ID }}"
                         class="needs-validation" novalidate>
+                        <!-- Tambahkan input hidden ini -->
+                        <input type="hidden" name="_method" value="PUT">
 
                         <!-- Username (readonly) -->
                         <div class="mb-3">
