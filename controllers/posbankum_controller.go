@@ -295,6 +295,7 @@ func KelurahanSearch(c *gin.Context) {
 		Preload("Kecamatan").
 		Preload("Kecamatan.Kabupaten").
 		Where("name LIKE ?", "%"+strings.TrimSpace(term)+"%").
+		Or("code LIKE ?", "%"+strings.TrimSpace(term)+"%").
 		Limit(20).
 		Find(&kelurahans)
 
