@@ -115,16 +115,16 @@ func main() {
 	config.ConnectDB()
 
 	// ============ SETUP ROUTES ============
-	jadi := r.Group("/jadi")
+	// jadi := r.Group("/")
 	{
 		// route app
-		routes.SetupRoutes(jadi)
+		routes.SetupRoutes(r)
 
-		// serve static files & uploads di bawah /jadi
-		jadi.Static("/static", "./static")
-		jadi.Static("/uploads", "./uploads")
+		// serve static files & uploads
+		r.Static("/static", "./static")
+		r.Static("/uploads", "./uploads")
 	}
-	if err := r.Run(":8182"); err != nil {
+	if err := r.Run("127.0.0.1:8182"); err != nil {
 		log.Fatal("Gagal menjalankan server:", err)
 	}
 }

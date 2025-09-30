@@ -63,15 +63,13 @@ func PosbankumIndex(c *gin.Context) {
 		"Page":       page,
 		"Offset":     offset,
 		"TotalPages": totalPages,
-		"BaseHref":   "/jadi", // Tambahkan ini
 	})
 }
 
 // ================== CREATE FORM ==================
 func PosbankumCreate(c *gin.Context) {
 	c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
-		"Title":    "Tambah Posbankum",
-		"BaseHref": "/jadi", // Tambahkan ini
+		"Title": "Tambah Posbankum",
 	})
 }
 
@@ -87,7 +85,6 @@ func PosbankumStore(c *gin.Context) {
 			"Title":          "Tambah Posbankum",
 			"ErrorKelurahan": "❌ Posbankum untuk kelurahan ini sudah ada",
 			"Catatan":        catatan,
-			"BaseHref":       "/jadi", // Tambahkan ini
 		})
 		return
 	}
@@ -98,7 +95,6 @@ func PosbankumStore(c *gin.Context) {
 			"Title":     "Tambah Posbankum",
 			"ErrorFile": "❌ Dokumen wajib diupload",
 			"Catatan":   catatan,
-			"BaseHref":  "/jadi", // Tambahkan ini
 		})
 		return
 	}
@@ -109,7 +105,6 @@ func PosbankumStore(c *gin.Context) {
 			"Title":     "Tambah Posbankum",
 			"ErrorFile": "❌ Ukuran file maksimal 10MB",
 			"Catatan":   catatan,
-			"BaseHref":  "/jadi", // Tambahkan ini
 		})
 		return
 	}
@@ -118,7 +113,6 @@ func PosbankumStore(c *gin.Context) {
 			"Title":     "Tambah Posbankum",
 			"ErrorFile": "❌ File harus berupa PDF",
 			"Catatan":   catatan,
-			"BaseHref":  "/jadi", // Tambahkan ini
 		})
 		return
 	}
@@ -136,7 +130,6 @@ func PosbankumStore(c *gin.Context) {
 			"Title":     "Tambah Posbankum",
 			"ErrorFile": "❌ Gagal upload file",
 			"Catatan":   catatan,
-			"BaseHref":  "/jadi", // Tambahkan ini
 		})
 		return
 	}
@@ -150,7 +143,7 @@ func PosbankumStore(c *gin.Context) {
 	}
 
 	config.DB.Create(&posbankum)
-	c.Redirect(http.StatusFound, "/jadi/admin/posbankum") // Redirect tidak perlu diubah
+	c.Redirect(http.StatusFound, "/admin/posbankum") // Redirect tidak perlu diubah
 }
 
 // ================== VIEW DOKUMEN ==================
@@ -188,7 +181,6 @@ func PosbankumEdit(c *gin.Context) { // Ubah nama fungsi dari PosbankumEdit menj
 	c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
 		"Title":     "Edit Posbankum",
 		"Posbankum": posbankum,
-		"BaseHref":  "/jadi", // Tambahkan ini
 	})
 }
 
@@ -213,7 +205,6 @@ func PosbankumUpdate(c *gin.Context) {
 			"Title":          "Edit Posbankum",
 			"Posbankum":      posbankum,
 			"ErrorKelurahan": "❌ Posbankum untuk kelurahan ini sudah ada",
-			"BaseHref":       "/jadi", // Tambahkan ini
 		})
 		return
 	}
@@ -229,7 +220,6 @@ func PosbankumUpdate(c *gin.Context) {
 				"Title":     "Edit Posbankum",
 				"Posbankum": posbankum,
 				"ErrorFile": "❌ Ukuran file maksimal 10MB",
-				"BaseHref":  "/jadi", // Tambahkan ini
 			})
 			return
 		}
@@ -238,7 +228,6 @@ func PosbankumUpdate(c *gin.Context) {
 				"Title":     "Edit Posbankum",
 				"Posbankum": posbankum,
 				"ErrorFile": "❌ File harus berupa PDF",
-				"BaseHref":  "/jadi", // Tambahkan ini
 			})
 			return
 		}
@@ -256,7 +245,6 @@ func PosbankumUpdate(c *gin.Context) {
 				"Title":     "Edit Posbankum",
 				"Posbankum": posbankum,
 				"ErrorFile": "❌ Gagal upload file",
-				"BaseHref":  "/jadi", // Tambahkan ini
 			})
 			return
 		}
@@ -270,7 +258,7 @@ func PosbankumUpdate(c *gin.Context) {
 	}
 
 	config.DB.Save(&posbankum)
-	c.Redirect(http.StatusFound, "/jadi/admin/posbankum") // Redirect tidak perlu diubah
+	c.Redirect(http.StatusFound, "/admin/posbankum") // Redirect tidak perlu diubah
 }
 
 // ================== DELETE ==================
@@ -291,7 +279,7 @@ func PosbankumDelete(c *gin.Context) {
 	// hapus record dari DB
 	config.DB.Delete(&posbankum)
 
-	c.Redirect(http.StatusFound, "/jadi/admin/posbankum") // Redirect tidak perlu diubah
+	c.Redirect(http.StatusFound, "/admin/posbankum") // Redirect tidak perlu diubah
 }
 
 // ================== API: Autocomplete Kelurahan ==================

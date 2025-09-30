@@ -338,7 +338,6 @@ func UserDashboard(c *gin.Context) {
 		PersenKadarkumProvinsi:  hitungPersen(tercapaiKadProv, totalKelurahanProv),
 		PersenPjaProvinsi:       hitungPersen(tercapaiPJAProv, totalKelurahanProv),
 		AllKabupatens:           provinsi.Kabupatens, // Kirim data semua kabupaten
-		BaseHref:                "/jadi",
 	}
 
 	c.HTML(http.StatusOK, "user_dashboard.html", data)

@@ -54,20 +54,20 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <h4 class="text-light text-center mb-4">Admin Panel</h4>
-        <a href="{{ .BaseHref }}/admin">🏠 Dashboard</a>
-        <a href="{{ .BaseHref }}/admin/posbankum">📂 Posbankum</a>
-        <a href="{{ .BaseHref }}/admin/paralegal">👥 Paralegal</a>
-        <a href="{{ .BaseHref }}/admin/kadarkum">📘 Kadarkum</a>
-        <a href="{{ .BaseHref }}/admin/pja">📑 PJA</a>
+        <a href="/admin">🏠 Dashboard</a>
+        <a href="/admin/posbankum">📂 Posbankum</a>
+        <a href="/admin/paralegal">👥 Paralegal</a>
+        <a href="/admin/kadarkum">📘 Kadarkum</a>
+        <a href="/admin/pja">📑 PJA</a>
         <hr class="text-light">
         <div class="px-3 text-light">Master Wilayah</div>
-        <a href="{{ .BaseHref }}/admin/users" class="submenu">👤 Users</a>
-        <a href="{{ .BaseHref }}/admin/provinsi" class="submenu">🌍 Provinsi</a>
-        <a href="{{ .BaseHref }}/admin/kabupaten" class="submenu">🏙️ Kabupaten/Kota</a>
-        <a href="{{ .BaseHref }}/admin/kecamatan" class="submenu">📌 Kecamatan</a>
-        <a href="{{ .BaseHref }}/admin/kelurahan" class="submenu">🏡 Kelurahan/Desa</a>
+        <a href="/admin/users" class="submenu">👤 Users</a>
+        <a href="/admin/provinsi" class="submenu">🌍 Provinsi</a>
+        <a href="/admin/kabupaten" class="submenu">🏙️ Kabupaten/Kota</a>
+        <a href="/admin/kecamatan" class="submenu">📌 Kecamatan</a>
+        <a href="/admin/kelurahan" class="submenu">🏡 Kelurahan/Desa</a>
         <hr class="text-light">
-        <a href="{{ .BaseHref }}/logout">🚪 Logout</a>
+        <a href="/logout">🚪 Logout</a>
     </div>
 
     <!-- Navbar -->
@@ -86,7 +86,7 @@
                     <h5 class="mb-0">➕ Tambah PJA</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ .BaseHref }}/admin/pja/store" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <form method="POST" action="/admin/pja/store" enctype="multipart/form-data" class="needs-validation" novalidate>
 
                         <!-- Kelurahan Autocomplete -->
                         <div class="mb-3 position-relative">
@@ -125,7 +125,7 @@
 
                         <!-- Tombol -->
                         <div class="d-flex justify-content-end">
-                            <a href="{{ .BaseHref }}/admin/pja" class="btn btn-secondary me-2">← Batal</a>
+                            <a href="/admin/pja" class="btn btn-secondary me-2">← Batal</a>
                             <button type="submit" class="btn btn-success">💾 Simpan</button>
                         </div>
                     </form>
@@ -163,7 +163,7 @@
                 suggestionsBox.innerHTML = "";
                 return;
             }
-            fetch("{{ .BaseHref }}/api/kelurahan/search?term=" + encodeURIComponent(term))
+            fetch("/api/kelurahan/search?term=" + encodeURIComponent(term))
                 .then(res => res.json())
                 .then(data => {
                     suggestionsBox.innerHTML = "";

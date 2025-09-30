@@ -128,13 +128,13 @@
 
 <body
     class="min-h-screen bg-fixed bg-center bg-cover bg-no-repeat text-gray-800 dark:text-slate-200 text-sm relative transition-colors duration-300"
-    style="background-image: url('{{ .BaseHref }}/static/bg.jpg');">
+    style="background-image: url('/static/bg.jpg');">
     <div class="fixed inset-0 bg-black/60 dark:bg-black/80 -z-10 transition-colors duration-300"></div>
     <header
         class="sticky top-0 z-50 flex items-center justify-between p-4 md:px-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md shadow-lg transition-colors duration-300 border-b border-gray-200/50 dark:border-slate-700/50">
         <div class="flex items-center gap-3">
             <div class="relative">
-                <img src="{{ .BaseHref }}/static/logo.png" alt="Logo Kementerian Hukum dan HAM"
+                <img src="/static/logo.png" alt="Logo Kementerian Hukum dan HAM"
                     class="h-10 w-10 rounded-full shadow-inner">
                 <div class="absolute -bottom-1 -right-1 bg-primary-500 rounded-full p-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20"
@@ -168,7 +168,7 @@
                 </template>
                 <span x-text="darkMode ? 'Terang' : 'Gelap'"></span>
             </button>
-            <form method="GET" action="{{ .BaseHref }}/logout">
+            <form method="GET" action="/logout">
                 <button type="submit"
                     class="px-3 py-1.5 rounded-full text-xs font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors duration-300 flex items-center gap-1.5 shadow-md hover:shadow-lg"
                     aria-label="Logout">
@@ -204,7 +204,7 @@
                     x-transition:leave-end="transform opacity-0 scale-95"
                     class="absolute right-0 mt-2 w-96 rounded-md shadow-lg bg-white dark:bg-slate-700 ring-1 ring-black ring-opacity-5 z-50 text-left"
                     x-cloak>
-                    <form method="POST" action="{{ .BaseHref }}/user/cetak-pdf" target="_blank" x-data="{
+                    <form method="POST" action="/user/cetak-pdf" target="_blank" x-data="{
                               selectAllKategori: false,
                               selectAllWilayah: false
                           }" x-init="
@@ -492,7 +492,7 @@
                                                 {{ range $pos := $kel.Posbankums }}
                                                 {{/* Pastikan record ini punya dokumen */}}
                                                 {{ if $pos.Dokumen }}
-                                                <a href="{{ $.BaseHref }}/view-document/posbankum/{{ $pos.ID }}"
+                                                <a href="/view-document/posbankum/{{ $pos.ID }}"
                                                     target="_blank"
                                                     class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
                                                     <i class="fas fa-file-alt"></i>
@@ -600,7 +600,7 @@
                                                 {{ range $kadar := $kel.Kadarkums }}
                                                 {{/* Pastikan record ini punya dokumen */}}
                                                 {{ if $kadar.Dokumen }}
-                                                <a href="{{ $.BaseHref }}/view-document/kadarkum/{{ $kadar.ID }}"
+                                                <a href="/view-document/kadarkum/{{ $kadar.ID }}"
                                                     target="_blank"
                                                     class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
                                                     <i class="fas fa-file-alt"></i>
@@ -705,7 +705,7 @@
                                                 {{ range $pja := $kel.Pjas }}
                                                 {{/* Pastikan record ini punya dokumen */}}
                                                 {{ if $pja.Dokumen }}
-                                                <a href="{{ $.BaseHref }}/view-document/pja/{{ $pja.ID }}"
+                                                <a href="/view-document/pja/{{ $pja.ID }}"
                                                     target="_blank"
                                                     class="inline-flex items-center gap-1 text-xs bg-green-500 text-white px-2.5 py-1 rounded-full hover:bg-green-600 transition-colors">
                                                     <i class="fas fa-file-alt"></i>
@@ -815,7 +815,7 @@
                                                         <span>{{ $p.Nama }}</span>
                                                     </div>
                                                     {{ if $p.Dokumen }}
-                                                    <a href="{{ $.BaseHref }}/view-document/paralegal/{{ $p.ID }}"
+                                                    <a href="/view-document/paralegal/{{ $p.ID }}"
                                                         target="_blank"
                                                         class="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full hover:bg-green-600 transition-colors">
                                                         <i class="fas fa-file-alt"></i>

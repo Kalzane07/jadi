@@ -16,7 +16,6 @@ func ProvinsiIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "provinsi_index.html", gin.H{
 		"Title":     "Data Provinsi",
 		"Provinsis": provinsis,
-		"BaseHref":  "/jadi",
 	})
 }
 
@@ -27,7 +26,6 @@ func KabupatenIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "kabupaten_index.html", gin.H{
 		"Title":      "Data Kabupaten/Kota",
 		"Kabupatens": kabupatens,
-		"BaseHref":   "/jadi",
 	})
 }
 
@@ -38,7 +36,6 @@ func KecamatanIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "kecamatan_index.html", gin.H{
 		"Title":      "Data Kecamatan",
 		"Kecamatans": kecamatans,
-		"BaseHref":   "/jadi",
 	})
 }
 
@@ -49,6 +46,5 @@ func KelurahanIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "kelurahan_index.html", gin.H{
 		"Title":      "Data Kelurahan/Desa",
 		"Kelurahans": kelurahans,
-		"BaseHref":   "/jadi",
 	})
 }
