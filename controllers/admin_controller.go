@@ -16,7 +16,7 @@ func AdminPanel(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("user")
 	if user == nil {
-		c.Redirect(http.StatusFound, "/jadi/login")
+		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 
@@ -145,6 +145,5 @@ func AdminPanel(c *gin.Context) {
 		"totalPosbankum":   totalPosbankum,
 		"totalPJA":         totalPJA,
 		"totalKadarkum":    totalKadarkum,
-		"BaseHref":         "/jadi",
 	})
 }

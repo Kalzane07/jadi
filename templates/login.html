@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="/jadi/static/output.css" rel="stylesheet">
+    <link href="/static/output.css" rel="stylesheet">
     <style>
         .card-frosted {
             backdrop-filter: blur(15px);
@@ -83,7 +83,7 @@
 </head>
 <body 
     class="min-h-screen flex items-center justify-center bg-fixed bg-center bg-cover bg-no-repeat relative p-4 text-gray-800 bg-pattern"
-    style="background-image: url('/jadi/static/bg.jpg');"
+    style="background-image: url('/static/bg.jpg');"
 >
     <div class="absolute inset-0 bg-black/60 -z-10"></div>
 
@@ -99,7 +99,7 @@
     <div class="w-full max-w-md rounded-3xl shadow-2xl p-8 card-frosted transition-all duration-500 backdrop-blur-lg animate-fade-in">
         <div class="flex justify-center mb-6">
             <div class="relative">
-                <img src="/jadi/static/logo.png" alt="Logo" class="h-24 w-24 object-contain transition-transform duration-500 hover:scale-110">
+                <img src="/static/logo.png" alt="Logo" class="h-24 w-24 object-contain transition-transform duration-500 hover:scale-110">
                 <div class="absolute inset-0 rounded-full bg-blue-500/20 blur-md -z-10 animate-pulse-slow"></div>
             </div>
         </div>
@@ -114,7 +114,7 @@
         {{ end }}
 
         <!-- Form -->
-        <form method="POST" action="{{ .BaseHref }}/login" novalidate x-data="{ validate: false, showPassword: false, rememberMe: false, isLoading: false, passwordStrength: 0,
+        <form method="POST" action="/login" novalidate x-data="{ validate: false, showPassword: false, rememberMe: false, isLoading: false, passwordStrength: 0,
             checkPasswordStrength() {
                 const password = this.$refs.password.value;
                 if (password.length === 0) this.passwordStrength = 0;
@@ -156,6 +156,24 @@
                     </button>
                 </div>
                 <p x-show="validate && !$refs.password.value" class="text-xs text-red-300 mt-2 font-medium animate-fade-in"><i class="fas fa-exclamation-circle mr-1"></i> Password harus diisi</p>
+                
+                <!-- Password strength -->
+                <div x-show="passwordStrength > 0" class="mt-2">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="text-white/70">Kekuatan password:</span>
+                        <span x-show="passwordStrength === 1" class="text-red-300">Lemah</span>
+                        <span x-show="passwordStrength === 2" class="text-yellow-300">Sedang</span>
+                        <span x-show="passwordStrength === 3" class="text-green-300">Kuat</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500"
+                             :class="{
+                                 'bg-red-500 w-1/3': passwordStrength === 1,
+                                 'bg-yellow-500 w-2/3': passwordStrength === 2,
+                                 'bg-green-500 w-full': passwordStrength === 3
+                             }"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-6 flex items-center justify-between">
@@ -174,7 +192,7 @@
             </button>
 
             <div class="mt-4">
-                <a href="/jadi/" class="w-full block py-3 rounded-xl btn-secondary text-white font-semibold text-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                <a href="/" class="w-full block py-3 rounded-xl btn-secondary text-white font-semibold text-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                     <i class="fas fa-arrow-left mr-2"></i> Kembali ke Dashboard
                 </a>
             </div>

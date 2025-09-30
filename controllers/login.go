@@ -22,8 +22,7 @@ func HashPassword(password string) (string, error) {
 // Login Page
 func ShowLogin(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", gin.H{
-		"Title":    "Login",
-		"BaseHref": "/jadi",
+		"Title": "Login",
 	})
 }
 
@@ -36,9 +35,8 @@ func DoLogin(c *gin.Context) {
 	// cari user berdasarkan username
 	if err := config.DB.Where("username = ?", username).First(&user).Error; err != nil {
 		c.HTML(http.StatusOK, "login.html", gin.H{
-			"Title":    "Login",
-			"error":    "❌ Username tidak ditemukan",
-			"BaseHref": "/jadi",
+			"Title": "Login",
+			"error": "❌ Username tidak ditemukan",
 		})
 		return
 	}
@@ -54,9 +52,8 @@ func DoLogin(c *gin.Context) {
 			config.DB.Save(&user)
 		} else {
 			c.HTML(http.StatusOK, "login.html", gin.H{
-				"Title":    "Login",
-				"error":    "❌ Password salah",
-				"BaseHref": "/jadi",
+				"Title": "Login",
+				"error": "❌ Password salah",
 			})
 			return
 		}
@@ -71,11 +68,11 @@ func DoLogin(c *gin.Context) {
 	// redirect sesuai role
 	switch user.Role {
 	case "admin":
-		c.Redirect(http.StatusFound, "/jadi/admin")
+		c.Redirect(http.StatusFound, "/admin")
 	case "user":
-		c.Redirect(http.StatusFound, "/jadi/user")
+		c.Redirect(http.StatusFound, "/user")
 	default:
-		c.Redirect(http.StatusFound, "/jadi/login")
+		c.Redirect(http.StatusFound, "/login")
 	}
 }
 
@@ -84,7 +81,7 @@ func Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Clear()
 	session.Save()
-	c.Redirect(http.StatusFound, "/jadi/login")
+	c.Redirect(http.StatusFound, "/")
 }
 
 // Middleware cek login (apapun role-nya)
@@ -93,7 +90,7 @@ func AuthRequired() gin.HandlerFunc {
 		session := sessions.Default(c)
 		user := session.Get("user")
 		if user == nil {
-			c.Redirect(http.StatusFound, "/jadi/login")
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}
@@ -108,7 +105,7 @@ func RoleRequired(roles ...string) gin.HandlerFunc {
 		role := session.Get("role")
 
 		if role == nil {
-			c.Redirect(http.StatusFound, "/jadi/login")
+			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
 		}

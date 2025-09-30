@@ -75,7 +75,12 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
-	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+
+	// Tingkatkan batas upload. Contoh: 64 MB
+	// 64 << 20 sama dengan 64 * 1024 * 1024
+	// Ini untuk mengatasi error "413 request entity too large"
+	r.MaxMultipartMemory = 64 << 20
 
 	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
 		log.Fatal("Gagal set trusted proxies:", err)
@@ -115,16 +120,16 @@ func main() {
 	config.ConnectDB()
 
 	// ============ SETUP ROUTES ============
-	jadi := r.Group("/jadi")
+	// jadi := r.Group("/")
 	{
 		// route app
-		routes.SetupRoutes(jadi)
+		routes.SetupRoutes(r)
 
-		// serve static files & uploads di bawah /jadi
-		jadi.Static("/static", "./static")
-
+		// serve static files & uploads
+		r.Static("/static", "./static")
+		r.Static("/uploads", "./uploads")
 	}
-	if err := r.Run(":8182"); err != nil {
+	if err := r.Run("127.0.0.1:8182"); err != nil {
 		log.Fatal("Gagal menjalankan server:", err)
 	}
 }

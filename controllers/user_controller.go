@@ -60,16 +60,14 @@ func UserIndex(c *gin.Context) {
 		"Page":       page,
 		"TotalPages": totalPages,
 		"Offset":     offset,
-		"user":       "admin", // TODO: nanti bisa diganti sesuai session login
-		"BaseHref":   "/jadi",
+		"user":       c.GetString("user"),
 	})
 }
 
 // Show form tambah user
 func UserCreateForm(c *gin.Context) {
 	c.HTML(http.StatusOK, "user_create.html", gin.H{
-		"Title":    "Tambah User",
-		"BaseHref": "/jadi",
+		"Title": "Tambah User",
 	})
 }
 
@@ -86,7 +84,6 @@ func UserCreate(c *gin.Context) {
 
 			"Title":         "Tambah User",
 			"ErrorPassword": err.Error(),
-			"BaseHref":      "/jadi",
 		})
 		return
 	}
@@ -114,7 +111,6 @@ func UserCreate(c *gin.Context) {
 			"Title":         "Tambah User",
 			"ErrorUsername": "Username sudah ada",
 
-			"BaseHref": "/jadi",
 			"Username": username,
 		})
 		return
@@ -126,7 +122,7 @@ func UserCreate(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Gagal simpan user")
 		return
 	}
-	c.Redirect(http.StatusFound, "/jadi/admin/users")
+	c.Redirect(http.StatusFound, "/admin/users")
 }
 
 // validatePassword -> validasi password
@@ -172,9 +168,8 @@ func UserEditForm(c *gin.Context) {
 
 	// kirim data user dengan ID ke template
 	c.HTML(http.StatusOK, "user_edit.html", gin.H{
-		"Title":    "Edit User",
-		"User":     user,
-		"BaseHref": "/jadi",
+		"Title": "Edit User",
+		"User":  user,
 	})
 }
 
@@ -205,7 +200,7 @@ func UserUpdate(c *gin.Context) {
 
 	config.DB.Save(&user)
 
-	c.Redirect(http.StatusFound, "/jadi/admin/users")
+	c.Redirect(http.StatusFound, "/admin/users")
 }
 
 // UserDelete -> hapus user
@@ -218,5 +213,5 @@ func UserDelete(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(http.StatusFound, "/jadi/admin/users")
+	c.Redirect(http.StatusFound, "/admin/users")
 }

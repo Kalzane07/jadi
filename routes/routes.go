@@ -20,20 +20,20 @@ func MethodOverride() gin.HandlerFunc {
 }
 
 // SetupRoutes untuk semua routing aplikasi
-func SetupRoutes(jadi *gin.RouterGroup) {
+func SetupRoutes(r *gin.Engine) {
 	// Tambahkan middleware MethodOverride
-	jadi.Use(MethodOverride())
+	r.Use(MethodOverride())
 
 	// ================= LANDING PAGE & STATISTIK =================
-	jadi.GET("/", controllers.LandingPage)
+	r.GET("/", controllers.LandingPage)
 
 	// ================= AUTH =================
-	jadi.GET("/login", controllers.ShowLogin)
-	jadi.POST("/login", controllers.DoLogin)
-	jadi.GET("/logout", controllers.Logout)
+	r.GET("/login", controllers.ShowLogin)
+	r.POST("/login", controllers.DoLogin)
+	r.GET("/logout", controllers.Logout)
 
 	// ================= ROUTES UMUM (BUTUH LOGIN) =================
-	auth := jadi.Group("/")
+	auth := r.Group("/")
 	auth.Use(controllers.AuthRequired())
 	{
 		auth.GET("/view-document/:type/:id", controllers.ViewDocument)
@@ -41,7 +41,7 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 
 	// ================= ROUTES ADMIN (UNTUK HALAMAN WEB) =================
 	// Grup ini khusus untuk halaman-halaman yang merender HTML dan butuh role "admin".
-	admin := jadi.Group("/admin")
+	admin := r.Group("/admin")
 	admin.Use(controllers.AuthRequired(), controllers.RoleRequired("admin"))
 	{
 		// ================= DASHBOARD =================
@@ -101,7 +101,7 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	// ================= ROUTES API (UNTUK DATA JSON) =================
 	// Grup ini khusus untuk endpoint API yang mengembalikan data JSON.
 	// Cukup pakai AuthRequired() saja, karena tidak merender halaman admin.
-	api := jadi.Group("/api")
+	api := r.Group("/api")
 	api.Use(controllers.AuthRequired())
 	{
 		api.GET("/kelurahan/search", controllers.KelurahanSearch)
@@ -112,7 +112,7 @@ func SetupRoutes(jadi *gin.RouterGroup) {
 	}
 
 	// ================= ROUTES USER =================
-	user := jadi.Group("/user")
+	user := r.Group("/user")
 	user.Use(controllers.AuthRequired(), controllers.RoleRequired("user"))
 	{
 		user.GET("/", controllers.UserDashboard)
