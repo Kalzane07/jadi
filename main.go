@@ -77,11 +77,6 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Recovery())
 
-	// Tingkatkan batas upload. Contoh: 64 MB
-	// 64 << 20 sama dengan 64 * 1024 * 1024
-	// Ini untuk mengatasi error "413 request entity too large"
-	r.MaxMultipartMemory = 64 << 20
-
 	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
 		log.Fatal("Gagal set trusted proxies:", err)
 	}

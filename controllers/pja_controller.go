@@ -9,6 +9,7 @@ import (
 
 	"go-admin/config"
 	"go-admin/models"
+	"go-admin/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -70,8 +71,8 @@ func PJACreate(c *gin.Context) {
 // ================== STORE ==================
 func PJAStore(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
-	catatan := c.PostForm("catatan")
-
+	catatan := utils.SanitizeInput(c.PostForm("catatan"))
+	// Cek duplikasi kelurahan
 	var existing models.Pja
 	if err := config.DB.Where("kelurahan_id = ?", kelurahanID).First(&existing).Error; err == nil {
 		c.HTML(http.StatusOK, "pja_create.html", gin.H{
@@ -82,6 +83,7 @@ func PJAStore(c *gin.Context) {
 		return
 	}
 
+	// Validasi file upload
 	file, err := c.FormFile("dokumen")
 	if err != nil {
 		c.HTML(http.StatusOK, "pja_create.html", gin.H{
@@ -91,19 +93,10 @@ func PJAStore(c *gin.Context) {
 		})
 		return
 	}
-
-	if file.Size > 10*1024*1024 {
+	if !utils.ValidatePDFUpload(c, file) {
 		c.HTML(http.StatusOK, "pja_create.html", gin.H{
 			"Title":     "Tambah PJA",
-			"ErrorFile": "❌ Ukuran file maksimal 10MB",
-			"Catatan":   catatan,
-		})
-		return
-	}
-	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-		c.HTML(http.StatusOK, "pja_create.html", gin.H{
-			"Title":     "Tambah PJA",
-			"ErrorFile": "❌ File harus berupa PDF",
+			"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 			"Catatan":   catatan,
 		})
 		return
@@ -112,7 +105,7 @@ func PJAStore(c *gin.Context) {
 	uploadPath := "uploads/pja"
 	os.MkdirAll(uploadPath, os.ModePerm)
 
-	// generate nama file unik menggunakan uuid
+	// Generate nama file unik menggunakan uuid
 	ext := filepath.Ext(file.Filename)
 	newName := uuid.New().String() + ext
 	fullPath := filepath.Join(uploadPath, newName)
@@ -126,8 +119,8 @@ func PJAStore(c *gin.Context) {
 		return
 	}
 
+	// Buat record baru
 	publicPath := strings.ReplaceAll(fullPath, "\\", "/")
-
 	pja := models.Pja{
 		KelurahanID: uint(kelurahanID),
 		Dokumen:     publicPath,
@@ -201,24 +194,18 @@ func PJAUpdate(c *gin.Context) {
 		return
 	}
 
+	// Update field
 	pja.KelurahanID = uint(kelurahanID)
-	pja.Catatan = c.PostForm("catatan")
+	pja.Catatan = utils.SanitizeInput(c.PostForm("catatan"))
 
 	file, err := c.FormFile("dokumen")
+	// Jika ada file baru yang diupload
 	if err == nil {
-		if file.Size > 10*1024*1024 {
+		if !utils.ValidatePDFUpload(c, file) {
 			c.HTML(http.StatusOK, "pja_edit.html", gin.H{
 				"Title":     "Edit PJA",
 				"PJA":       pja,
-				"ErrorFile": "❌ Ukuran file maksimal 10MB",
-			})
-			return
-		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "pja_edit.html", gin.H{
-				"Title":     "Edit PJA",
-				"PJA":       pja,
-				"ErrorFile": "❌ File harus berupa PDF",
+				"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 			})
 			return
 		}
@@ -226,7 +213,7 @@ func PJAUpdate(c *gin.Context) {
 		uploadPath := "uploads/pja"
 		os.MkdirAll(uploadPath, os.ModePerm)
 
-		// generate nama file unik menggunakan uuid
+		// Generate nama file unik menggunakan uuid
 		ext := filepath.Ext(file.Filename)
 		newName := uuid.New().String() + ext
 		newPath := filepath.Join(uploadPath, newName)
@@ -240,7 +227,7 @@ func PJAUpdate(c *gin.Context) {
 			return
 		}
 
-		// hapus file lama
+		// Hapus file lama jika ada
 		if pja.Dokumen != "" {
 			_ = os.Remove(pja.Dokumen)
 		}
@@ -286,7 +273,6 @@ func PJAKelurahanSearch(c *gin.Context) {
 		Preload("Kecamatan").
 		Preload("Kecamatan.Kabupaten").
 		Where("name LIKE ?", "%"+strings.TrimSpace(term)+"%").
-		Or("code LIKE ?", "%"+strings.TrimSpace(term)+"%").
 		Limit(20).
 		Find(&kelurahans)
 

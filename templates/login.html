@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | JADI - Jambi Database Informasi Penyuluh Hukum</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -117,9 +118,13 @@
         <form method="POST" action="/login" novalidate x-data="{ validate: false, showPassword: false, rememberMe: false, isLoading: false, passwordStrength: 0,
             checkPasswordStrength() {
                 const password = this.$refs.password.value;
+                const hasUpperCase = /[A-Z]/.test(password);
+                const hasLowerCase = /[a-z]/.test(password);
+                const hasNumbers = /[0-9]/.test(password);
+                const hasSymbols = /[!@#$%^&*()]/.test(password);
                 if (password.length === 0) this.passwordStrength = 0;
-                else if (password.length < 6) this.passwordStrength = 1;
-                else if (password.length < 10 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) this.passwordStrength = 2;
+                else if (password.length < 8) this.passwordStrength = 1; // Lemah: Kurang dari 8 karakter
+                else if (password.length < 12 || !hasUpperCase || !hasLowerCase || !hasNumbers || !hasSymbols) this.passwordStrength = 2; // Sedang: Belum memenuhi semua kriteria
                 else this.passwordStrength = 3;
             }
         }" 

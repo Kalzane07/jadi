@@ -120,7 +120,7 @@
                                 File PDF, maksimal 10MB. <br>
                                 Dokumen sekarang:
                                 {{ if .Paralegal.Dokumen }}
-                                <a href="{{ $.BaseHref }}/{{ .Paralegal.Dokumen }}" target="_blank">📄 Lihat PDF</a>
+                                <a href="{{ $.BaseHref }}/admin/paralegal/view/{{ .Paralegal.ID }}" target="_blank">📄 Lihat PDF</a>
                                 {{ else }}
                                 <span class="text-muted">Belum ada</span>
                                 {{ end }}
