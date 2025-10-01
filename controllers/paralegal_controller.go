@@ -145,7 +145,7 @@ func ParalegalStore(c *gin.Context) {
 		if err := c.SaveUploadedFile(file, fullPath); err != nil {
 			c.HTML(http.StatusOK, "paralegal_create.html", gin.H{
 				"Title":     "Tambah Paralegal",
-				"ErrorFile": "❌ Gagal upload file",
+				"ErrorFile": "Gagal upload file",
 				"Nama":      nama,
 			})
 			return
