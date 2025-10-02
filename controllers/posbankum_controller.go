@@ -9,6 +9,7 @@ import (
 
 	"go-admin/config"
 	"go-admin/models"
+	"go-admin/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -76,8 +77,8 @@ func PosbankumCreate(c *gin.Context) {
 // ================== STORE ==================
 func PosbankumStore(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
-	catatan := c.PostForm("catatan")
 
+	catatan := utils.SanitizeInput(c.PostForm("catatan"))
 	// cek duplikasi
 	var existing models.Posbankum
 	if err := config.DB.Where("kelurahan_id = ?", kelurahanID).First(&existing).Error; err == nil {
@@ -100,18 +101,10 @@ func PosbankumStore(c *gin.Context) {
 	}
 
 	// validasi file
-	if file.Size > 10*1024*1024 {
+	if !utils.ValidatePDFUpload(c, file) {
 		c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
 			"Title":     "Tambah Posbankum",
-			"ErrorFile": "❌ Ukuran file maksimal 10MB",
-			"Catatan":   catatan,
-		})
-		return
-	}
-	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-		c.HTML(http.StatusOK, "posbankum_create.html", gin.H{
-			"Title":     "Tambah Posbankum",
-			"ErrorFile": "❌ File harus berupa PDF",
+			"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 			"Catatan":   catatan,
 		})
 		return
@@ -210,24 +203,17 @@ func PosbankumUpdate(c *gin.Context) {
 	}
 
 	posbankum.KelurahanID = uint(kelurahanID)
-	posbankum.Catatan = c.PostForm("catatan")
+
+	posbankum.Catatan = utils.SanitizeInput(c.PostForm("catatan"))
 
 	// cek file baru
 	file, err := c.FormFile("dokumen")
 	if err == nil {
-		if file.Size > 10*1024*1024 {
+		if !utils.ValidatePDFUpload(c, file) {
 			c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
 				"Title":     "Edit Posbankum",
 				"Posbankum": posbankum,
-				"ErrorFile": "❌ Ukuran file maksimal 10MB",
-			})
-			return
-		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "posbankum_edit.html", gin.H{
-				"Title":     "Edit Posbankum",
-				"Posbankum": posbankum,
-				"ErrorFile": "❌ File harus berupa PDF",
+				"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 			})
 			return
 		}

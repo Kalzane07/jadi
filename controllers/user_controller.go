@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"fmt"
-	"log"
+	"html"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
-
-	"regexp"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -15,6 +15,7 @@ import (
 	"go-admin/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // ================= Util =================
@@ -73,13 +74,18 @@ func UserCreateForm(c *gin.Context) {
 
 // Simpan user baru
 func UserCreate(c *gin.Context) {
-	username := c.PostForm("username")
 	password := c.PostForm("password")
 	role := c.PostForm("role")
 
+	// Sanitasi input username untuk mencegah XSS dan membersihkan spasi
+	p := bluemonday.StrictPolicy() // Gunakan StrictPolicy untuk menghapus semua HTML
+	// 1. URL Decode, 2. HTML Unescape, 3. Sanitize
+	urlDecodedUsername, _ := url.QueryUnescape(c.PostForm("username"))
+	unescapedUsername := html.UnescapeString(urlDecodedUsername)
+	username := p.Sanitize(unescapedUsername)
 	// Validasi password menggunakan fungsi validatePassword
 	if err := validatePassword(password); err != nil {
-		log.Printf("Validasi password gagal: %v", err)
+		// log.Printf("Validasi password gagal: %v", err)
 		c.HTML(http.StatusBadRequest, "user_create.html", gin.H{
 
 			"Title":         "Tambah User",
@@ -91,7 +97,7 @@ func UserCreate(c *gin.Context) {
 	// Hash password menggunakan bcrypt
 	hashed, err := hashPassword(password)
 	if err != nil {
-		log.Printf("Gagal hash password: %v", err)
+		// log.Printf("Gagal hash password: %v", err)
 		c.String(http.StatusInternalServerError, "Gagal hash password")
 		return
 	}
@@ -106,7 +112,7 @@ func UserCreate(c *gin.Context) {
 	// Cek apakah username sudah ada
 	var existingUser models.User
 	if err := config.DB.Where("username = ?", username).First(&existingUser).Error; err == nil {
-		log.Printf("Username sudah ada: %s", username)
+		// log.Printf("Username sudah ada: %s", username)
 		c.HTML(http.StatusBadRequest, "user_create.html", gin.H{
 			"Title":         "Tambah User",
 			"ErrorUsername": "Username sudah ada",
@@ -118,7 +124,7 @@ func UserCreate(c *gin.Context) {
 
 	// Menyimpan user ke database
 	if err := config.DB.Create(&user).Error; err != nil {
-		log.Printf("Gagal simpan user ke database: %v", err)
+		// log.Printf("Gagal simpan user ke database: %v", err)
 		c.String(http.StatusInternalServerError, "Gagal simpan user")
 		return
 	}
@@ -127,34 +133,61 @@ func UserCreate(c *gin.Context) {
 
 // validatePassword -> validasi password
 func validatePassword(password string) error {
-	if len(password) < 6 {
-		return fmt.Errorf("password harus minimal 6 karakter")
+	if len(password) < 8 {
+		return fmt.Errorf("password harus minimal 8 karakter")
 	}
-	if !hasUpperCase(password) || !hasSymbol(password) {
-		return fmt.Errorf("password harus mengandung setidaknya 1 huruf besar dan 1 simbol")
+	if !hasUpperCase(password) {
+		return fmt.Errorf("password harus mengandung setidaknya 1 huruf besar")
+	}
+	if !hasLowerCase(password) {
+		return fmt.Errorf("password harus mengandung setidaknya 1 huruf kecil")
+	}
+	if !hasNumber(password) {
+		return fmt.Errorf("password harus mengandung setidaknya 1 angka")
+	}
+	if !hasSymbol(password) {
+		return fmt.Errorf("password harus mengandung setidaknya 1 simbol")
 	}
 	return nil
-
 }
+
 func hasUpperCase(s string) bool {
 	for _, r := range s {
-		if r >= 'A' && r <= 'Z' {
+		if 'A' <= r && r <= 'Z' {
 			return true
 		}
 	}
+	return false
+}
 
+func hasLowerCase(s string) bool {
+	for _, r := range s {
+		if 'a' <= r && r <= 'z' {
+			return true
+		}
+	}
 	return false
 }
 
 // hasSymbol -> cek apakah string mengandung simbol
 func hasSymbol(s string) bool {
 	// Definisi regular expression untuk simbol yang diizinkan
-	pattern := `[!@#$%^&*()]`
+	for _, r := range s {
+		if strings.ContainsRune("!@#$%^&*()", r) {
+			return true
+		}
+	}
+	return false
+}
 
-	// Mencocokkan string dengan regular expression
-	matched, _ := regexp.MatchString(pattern, s)
-	return matched
-
+// hasNumber -> cek apakah string mengandung angka
+func hasNumber(s string) bool {
+	for _, r := range s {
+		if '0' <= r && r <= '9' {
+			return true
+		}
+	}
+	return false
 }
 
 // UserEditForm -> menampilkan form edit user
@@ -190,6 +223,16 @@ func UserUpdate(c *gin.Context) {
 
 	// update password kalau diisi
 	if password != "" {
+		// Validasi password baru
+		if err := validatePassword(password); err != nil {
+			// log.Printf("Validasi password gagal saat update: %v", err)
+			c.HTML(http.StatusBadRequest, "user_edit.html", gin.H{
+				"Title":         "Edit User",
+				"User":          user,
+				"ErrorPassword": err.Error(),
+			})
+			return
+		}
 		hashed, err := hashPassword(password)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Gagal hash password")

@@ -9,6 +9,7 @@ import (
 
 	"go-admin/config"
 	"go-admin/models"
+	"go-admin/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -71,8 +72,8 @@ func KadarkumCreate(c *gin.Context) {
 // ================== STORE ==================
 func KadarkumStore(c *gin.Context) {
 	kelurahanID, _ := strconv.Atoi(c.PostForm("kelurahan_id"))
-	catatan := c.PostForm("catatan")
 
+	catatan := utils.SanitizeInput(c.PostForm("catatan"))
 	// cek duplikasi
 	var existing models.Kadarkum
 	if err := config.DB.Where("kelurahan_id = ?", kelurahanID).First(&existing).Error; err == nil {
@@ -95,18 +96,10 @@ func KadarkumStore(c *gin.Context) {
 	}
 
 	// validasi file
-	if file.Size > 10*1024*1024 {
+	if !utils.ValidatePDFUpload(c, file) {
 		c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
 			"Title":     "Tambah Kadarkum",
-			"ErrorFile": "❌ Ukuran file maksimal 10MB",
-			"Catatan":   catatan,
-		})
-		return
-	}
-	if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-		c.HTML(http.StatusOK, "kadarkum_create.html", gin.H{
-			"Title":     "Tambah Kadarkum",
-			"ErrorFile": "❌ File harus berupa PDF",
+			"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 			"Catatan":   catatan,
 		})
 		return
@@ -202,23 +195,16 @@ func KadarkumUpdate(c *gin.Context) {
 	}
 
 	kadarkum.KelurahanID = uint(kelurahanID)
-	kadarkum.Catatan = c.PostForm("catatan")
+
+	kadarkum.Catatan = utils.SanitizeInput(c.PostForm("catatan"))
 
 	file, err := c.FormFile("dokumen")
 	if err == nil {
-		if file.Size > 10*1024*1024 {
+		if !utils.ValidatePDFUpload(c, file) {
 			c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
 				"Title":     "Edit Kadarkum",
 				"Kadarkum":  kadarkum,
-				"ErrorFile": "❌ Ukuran file maksimal 10MB",
-			})
-			return
-		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "kadarkum_edit.html", gin.H{
-				"Title":     "Edit Kadarkum",
-				"Kadarkum":  kadarkum,
-				"ErrorFile": "❌ File harus berupa PDF",
+				"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 			})
 			return
 		}

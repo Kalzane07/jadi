@@ -9,6 +9,7 @@ import (
 
 	"go-admin/config"
 	"go-admin/models"
+	"go-admin/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -111,24 +112,16 @@ func PosbankumSearch(c *gin.Context) {
 // ================== STORE ==================
 func ParalegalStore(c *gin.Context) {
 	posbankumID, _ := strconv.Atoi(c.PostForm("posbankum_id"))
-	nama := c.PostForm("nama")
 
+	nama := utils.SanitizeInput(c.PostForm("nama"))
 	var dokumenPath string
 
 	file, err := c.FormFile("dokumen")
 	if err == nil {
-		if file.Size > 10*1024*1024 {
+		if !utils.ValidatePDFUpload(c, file) {
 			c.HTML(http.StatusOK, "paralegal_create.html", gin.H{
 				"Title":     "Tambah Paralegal",
-				"ErrorFile": "❌ Ukuran file maksimal 10MB",
-				"Nama":      nama,
-			})
-			return
-		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "paralegal_create.html", gin.H{
-				"Title":     "Tambah Paralegal",
-				"ErrorFile": "❌ File harus berupa PDF",
+				"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 				"Nama":      nama,
 			})
 			return
@@ -217,25 +210,17 @@ func ParalegalUpdate(c *gin.Context) {
 		return
 	}
 
-	paralegal.Nama = c.PostForm("nama")
+	paralegal.Nama = utils.SanitizeInput(c.PostForm("nama"))
 	posbankumID, _ := strconv.Atoi(c.PostForm("posbankum_id"))
 	paralegal.PosbankumID = uint(posbankumID)
 
 	file, err := c.FormFile("dokumen")
 	if err == nil {
-		if file.Size > 10*1024*1024 {
+		if !utils.ValidatePDFUpload(c, file) {
 			c.HTML(http.StatusOK, "paralegal_edit.html", gin.H{
 				"Title":     "Edit Paralegal",
 				"Paralegal": paralegal,
-				"ErrorFile": "❌ Ukuran file maksimal 10MB",
-			})
-			return
-		}
-		if strings.ToLower(filepath.Ext(file.Filename)) != ".pdf" {
-			c.HTML(http.StatusOK, "paralegal_edit.html", gin.H{
-				"Title":     "Edit Paralegal",
-				"Paralegal": paralegal,
-				"ErrorFile": "❌ File harus berupa PDF",
+				"ErrorFile": "❌ File tidak valid. Pastikan file adalah PDF dan ukurannya di bawah 10MB.",
 			})
 			return
 		}
