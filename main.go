@@ -70,12 +70,17 @@ func toJSON(v any) template.JS {
 	return template.JS(a)
 }
 
+func mod(i, j int) int {
+	return i % j
+}
+
 func main() {
 	// ============ SET GIN MODE KE RELEASE ============
-	gin.SetMode(gin.ReleaseMode)
+	// gin.SetMode(gin.ReleaseMode) // Dikomentari untuk mengaktifkan mode Debug
+	gin.SetMode(gin.DebugMode)
 
-	r := gin.New()
-	r.Use(gin.Recovery())
+	r := gin.New()        // Menggunakan gin.New() agar tidak ada logger default
+	r.Use(gin.Recovery()) // Tetap gunakan recovery middleware untuk menangani panic
 
 	if err := r.SetTrustedProxies([]string{"127.0.0.1", "::1"}); err != nil {
 		log.Fatal("Gagal set trusted proxies:", err)
@@ -95,6 +100,7 @@ func main() {
 		"hasPrefix":        strings.HasPrefix,
 		"hasSuffix":        strings.HasSuffix,
 		"toJSON":           toJSON,
+		"mod":              mod,
 	}
 	r.SetFuncMap(funcMap)
 	r.LoadHTMLGlob("templates/*")

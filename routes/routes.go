@@ -26,6 +26,7 @@ func SetupRoutes(r *gin.Engine) {
 
 	// ================= LANDING PAGE & STATISTIK =================
 	r.GET("/", controllers.LandingPage)
+	r.GET("/detail", controllers.PublicDashboard) // <-- RUTE BARU DITAMBAHKAN DI SINI
 
 	// ================= AUTH =================
 	r.GET("/login", controllers.ShowLogin)
@@ -110,6 +111,9 @@ func SetupRoutes(r *gin.Engine) {
 		api.GET("/pja/search", controllers.PosbankumSearch)
 		api.GET("/paralegal/search", controllers.PosbankumSearch)
 	}
+
+	// Endpoint API publik (tanpa auth)
+	r.GET("/api/map-data", controllers.MapDataAPI)
 
 	// ================= ROUTES USER =================
 	user := r.Group("/user")

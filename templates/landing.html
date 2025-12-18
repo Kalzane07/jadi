@@ -11,6 +11,10 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <style>
         /* 
          * JADI - Jambi Database Informasi Pembinaan Hukum
@@ -222,10 +226,290 @@
             background-clip: text;
             color: transparent;
         }
+
+        /* Style untuk Modal Video */
+        .video-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .video-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .video-modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .video-modal-overlay.active .video-modal-content {
+            transform: scale(1);
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 35px;
+            height: 35px;
+            background: white;
+            color: #333;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border: 2px solid #eee;
+        }
+
+        .play-button-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .play-button {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Style untuk Peta */
+        #map {
+            height: 500px;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 10; /* Pastikan peta di atas elemen lain */
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        .leaflet-popup-content {
+            margin: 12px;
+            font-family: 'Montserrat', sans-serif;
+            max-height: 250px; /* Menambah tinggi maksimal popup */
+            overflow-y: auto; /* Menambahkan scroll jika konten masih panjang */
+        }
+        .leaflet-popup-content p {
+            margin: 2px 0; /* Mengurangi jarak antar paragraf di popup */
+        }
+
+        /* Style untuk Testimonial Slider */
+        .testimonial-slider {
+            padding-bottom: 50px !important; /* Ruang untuk pagination */
+        }
+        .testimonial-card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .swiper-pagination-bullet-active {
+            background-color: var(--color-primary) !important;
+        }
+        .swiper-button-next, .swiper-button-prev {
+            color: var(--color-primary) !important;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+        }
+
+        /* Style untuk Timeline */
+        .timeline-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #e2e8f0;
+            /* gray-200 */
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+        }
+
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+
+        .timeline-item.left {
+            left: 0;
+        }
+
+        .timeline-item.right {
+            left: 50%;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            right: -14px;
+            background-color: white;
+            border: 4px solid var(--color-secondary);
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .timeline-item.right::after {
+            left: -12px;
+        }
+
+        /* Responsif untuk layar kecil */
+        @media screen and (max-width: 768px) {
+            .timeline-container::after {
+                left: 31px;
+            }
+
+            .timeline-item, .timeline-item.right {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+                left: 0;
+            }
+
+            .timeline-item.right::after, .timeline-item.left::after {
+                left: 18px;
+            }
+        }
+
+        /* Style untuk Animasi Scroll */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.6s ease-out, transform 0.8s ease-out;
+        }
+
+        .revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Style untuk Kuis Interaktif */
+        .quiz-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 700px;
+            margin: auto;
+        }
+        .answer-option {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #e2e8f0; /* gray-200 */
+            border-radius: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .answer-option:hover {
+            border-color: var(--color-secondary);
+            background-color: #fffbeb; /* yellow-50 */
+        }
+        .answer-option.selected {
+            border-color: var(--color-primary);
+            background-color: #eff6ff; /* blue-50 */
+            color: var(--color-primary);
+        }
+        .answer-option.correct {
+            background-color: #dcfce7; /* green-100 */
+            border-color: #22c55e; /* green-500 */
+        }
+        .answer-option.wrong {
+            background-color: #fee2e2; /* red-100 */
+            border-color: #ef4444; /* red-500 */
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--color-secondary);
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 
 <body class="antialiased">
+
+    <!-- Modal Video YouTube -->
+    <div id="video-modal" class="video-modal-overlay">
+        <div class="video-modal-content">
+            <span id="close-video-modal" class="close-modal">&times;</span>
+            <div class="video-container">
+                <!-- URL video sudah menyertakan autoplay=1 -->
+                <iframe id="youtube-video" width="560" height="315" src="https://www.youtube.com/embed/334LDt9LcrI?enablejsapi=1&autoplay=1"
+                    title="YouTube video player" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
 
     <!-- Header Navigation -->
     <header class="bg-white/95 backdrop-blur-sm shadow-md sticky top-0 z-50">
@@ -287,7 +571,7 @@
                 Akses semua data dan informasi pembinaan hukum yang terintegrasi di Provinsi Jambi.
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#statistik"
+                <a href="/detail"
                     class="inline-block px-10 py-4 font-bold text-lg text-blue-800 btn-secondary rounded-full shadow-lg">
                     Jelajahi Data
                 </a>
@@ -299,6 +583,74 @@
         </div>
         <div class="absolute bottom-10 animate-bounce">
             <i data-feather="chevron-down" class="w-8 h-8"></i>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="timeline" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-blue-800">Perjalanan Kami</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Langkah demi langkah dalam membangun ekosistem pembinaan hukum digital di Jambi.</p>
+                <div class="w-24 h-1 bg-yellow-400 mx-auto mt-4"></div>
+            </div>
+
+            <div class="timeline-container">
+                <div class="timeline-item left reveal-on-scroll">
+                    <div class="p-6 bg-white rounded-xl shadow-md border-l-4 border-blue-600 ">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold text-blue-800">Landasan Konstitusional</h3>
+                            <span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">2011</span>
+                        </div>
+                        <p class="text-gray-600"><b>Peristiwa:</b> Disahkannya UU No. 16 Tahun 2011 tentang Bantuan Hukum. <br><b>Signifikansi:</b> Negara secara resmi membiayai bantuan hukum bagi warga miskin.</p>
+                    </div>
+                </div>
+                <div class="timeline-item right reveal-on-scroll">
+                    <div class="p-6 bg-white rounded-xl shadow-md border-l-4 border-blue-600 ">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold text-blue-800">Operasional Anggaran dan PP Pelaksana</h3>
+                            <span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">2013</span>
+                        </div>
+                        <p class="text-gray-600"><b>Peristiwa:</b> Terbitnya PP No. 42 Tahun 2013. <br><b>Signifikansi:</b> Dimulainya penyaluran anggaran APBN ke Organisasi Bantuan Hukum (OBH) melalui BPHN.</p>
+                    </div>
+                </div>
+                <div class="timeline-item left reveal-on-scroll">
+                    <div class="p-6 bg-white rounded-xl shadow-md border-l-4 border-blue-600 ">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold text-blue-800">Legalisasi Peran Paralegal</h3>
+                            <span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">2018</span>
+                        </div>
+                        <p class="text-gray-600"><b>Peristiwa:</b> Terbitnya Permenkumham No. 1 Tahun 2018. <br><b>Signifikansi:</b> Pengakuan peran Paralegal (non-advokat) sebagai ujung tombak layanan hukum di daerah terpencil.</p>
+                    </div>
+                </div>
+                <div class="timeline-item right reveal-on-scroll">
+                    <div class="p-6 bg-white rounded-xl shadow-md border-l-4 border-blue-600 ">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold text-blue-800">Re-standardisasi Layanan (Mutu)</h3>
+                            <span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">2021</span>
+                        </div>
+                        <p class="text-gray-600"><b>Peristiwa:</b> Terbitnya Permenkumham No. 4 Tahun 2021. <br><b>Signifikansi:</b> Pengetatan standar kualitas layanan dan mekanisme pengawasan terhadap OBH.</p>
+                    </div>
+                </div>
+                <div class="timeline-item left reveal-on-scroll">
+                    <div class="p-6 bg-white rounded-xl shadow-md border-l-4 border-blue-600 ">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold text-blue-800">Era "Keadilan Masuk Desa"</h3>
+                            <span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">2025</span>
+                        </div>
+                        <p class="text-gray-600"><b>Peristiwa:</b> Pencanangan ribuan Posbankum Desa/Kelurahan. <br><b>Signifikansi:</b> Desentralisasi layanan hukum ke tingkat desa dan penguatan peran Paralegal & Kepala Desa.</p>
+                    </div>
+                </div>
+                <div class="timeline-item right reveal-on-scroll">
+                    <div class="p-6 bg-white rounded-xl shadow-md border-l-4 border-blue-600 ">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold text-blue-800">Inovasi Basis Data Jambi</h3>
+                            <span class="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">2025</span>
+                        </div>
+                        <p class="text-gray-600">Kanwil Kemenkumham Jambi mengembangkan JADI sebagai basis data untuk pendataan, pemetaan, dan monitoring kegiatan Penyuluh Hukum di tingkat provinsi.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -339,9 +691,15 @@
                 </div>
                 <div class="md:w-1/2">
                     <div class="relative">
-                        <img src="/static/bg.jpg" alt="Gedung Kementerian"
+                        <img src="/static/bg.jpg" alt="Gedung Penyuluh Hukum"
                             class="rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-500" />
-
+                        
+                        <!-- Tombol Play Video -->
+                        <div id="open-video-modal" class="play-button-wrapper">
+                            <div class="play-button hover:scale-110 hover:bg-white">
+                                <i class="fas fa-play text-blue-800 text-3xl ml-1"></i>
+                            </div>
+                        </div>
 
                         <div
                             class="absolute -bottom-6 -right-6 bg-yellow-400 text-blue-900 p-4 rounded-lg shadow-lg pulse-animation">
@@ -357,79 +715,17 @@
     <section id="statistik" class="py-20 bg-gray-100">
         <div class="container mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-blue-800">Basisdata Kami</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">Data terkini mengenai program pembinaan hukum di seluruh
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-blue-800">Peta Sebaran Pembinaan Hukum</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Jelajahi data pembinaan hukum secara interaktif di seluruh kabupaten/kota
                     Provinsi Jambi</p>
                 <div class="w-24 h-1 bg-yellow-400 mx-auto mt-4"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="neumorphic-card rounded-2xl p-8 text-center border-t-4 border-yellow-400">
-                    <div
-                        class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center shadow-md stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-map-pin text-blue-600">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-2 text-blue-800">POSBANKUM</h3>
-                    <p class="text-5xl font-extrabold text-yellow-500 count-up-stat" data-count="{{ .TotalPosbankum }}">
-                        0</p>
-                    <p class="text-sm text-gray-600 mt-2">Pos Bantuan Hukum Terbentuk</p>
-                </div>
-                <div class="neumorphic-card rounded-2xl p-8 text-center border-t-4 border-yellow-400">
-                    <div
-                        class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center shadow-md stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-users text-blue-600">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-2 text-blue-800">KADARKUM</h3>
-                    <p class="text-5xl font-extrabold text-yellow-500 count-up-stat" data-count="{{ .TotalKadarkum }}">0
-                    </p>
-                    <p class="text-sm text-gray-600 mt-2">Keluarga Sadar Hukum Terbentuk</p>
-                </div>
-                <div class="neumorphic-card rounded-2xl p-8 text-center border-t-4 border-yellow-400">
-                    <div
-                        class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center shadow-md stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-award text-blue-600">
-                            <circle cx="12" cy="8" r="7"></circle>
-                            <polyline points="8.21 13.89 7 23 12 18 17 23 15.79 13.88"></polyline>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-2 text-blue-800">PJA</h3>
-                    <p class="text-5xl font-extrabold text-yellow-500 count-up-stat" data-count="{{ .TotalPja }}">0</p>
-                    <p class="text-sm text-gray-600 mt-2">Pemberian Peacemaker Justice Award</p>
-                </div>
-                <div class="neumorphic-card rounded-2xl p-8 text-center border-t-4 border-yellow-400">
-                    <div
-                        class="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center shadow-md stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="feather feather-user-check text-blue-600">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="8.5" cy="7" r="4"></circle>
-                            <polyline points="17 11 19 13 23 9"></polyline>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold mb-2 text-blue-800">PARALEGAL</h3>
-                    <p class="text-5xl font-extrabold text-yellow-500 count-up-stat" data-count="{{ .TotalParalegal }}">
-                        0</p>
-                    <p class="text-sm text-gray-600 mt-2">Paralegal Terlatih Terdaftar</p>
-                </div>
-            </div>
+            <!-- Peta Interaktif -->
+            <div id="map"></div>
 
             <div class="mt-16 text-center">
-                <a href="/login"
+                <a href="/detail" 
                     class="inline-block px-8 py-3 font-bold text-lg text-white btn-primary rounded-full shadow-lg">
                     Akses Lengkap Data
                 </a>
@@ -446,7 +742,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div
-                    class="feature-card p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300">
+                    class="feature-card p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300 reveal-on-scroll">
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                         <i data-feather="database" class="w-6 h-6 text-blue-600"></i>
                     </div>
@@ -455,7 +751,7 @@
                         dalam satu platform terpadu.</p>
                 </div>
                 <div
-                    class="feature-card p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300">
+                    class="feature-card p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300 reveal-on-scroll" style="transition-delay: 150ms;">
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                         <i data-feather="shield" class="w-6 h-6 text-blue-600"></i>
                     </div>
@@ -464,7 +760,7 @@
                         akses yang ketat.</p>
                 </div>
                 <div
-                    class="feature-card p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300">
+                    class="feature-card p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all duration-300 reveal-on-scroll" style="transition-delay: 300ms;">
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                         <i data-feather="smartphone" class="w-6 h-6 text-blue-600"></i>
                     </div>
@@ -476,58 +772,52 @@
         </div>
     </section>
 
-    <!-- Testimonials Section
-    <section class="py-20 bg-gray-50">
+    <!-- Quiz Section -->
+    <section id="quiz" class="py-20 bg-blue-50">
         <div class="container mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-blue-800">Kegiatan Paralegal</h2>
-                <div class="w-24 h-1 bg-yellow-400 mx-auto"></div>
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-blue-800">Uji Pengetahuan Hukum Anda</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Seberapa jauh Anda memahami isu hukum di sekitar kita? Ikuti kuis singkat ini!</p>
+                <div class="w-24 h-1 bg-yellow-400 mx-auto mt-4"></div>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <i class="fas fa-user text-blue-600"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="font-bold text-gray-800">Ahmad Suryadi</h4>
-                            <p class="text-sm text-gray-600">Kepala Desa xxxx </p>
-                        </div>
-                    </div>
 
-                    <p class="text-gray-600">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer in neque neque. Cras euismod sapien viverra fermentum viverra. Vivamus lorem lectus, tincidunt sit amet nisi id, porttitor vulputate lorem. Phasellus volutpat, est in fringilla cursus, mauris mauris ullamcorper leo, at sodales leo tellus nec quam. Donec ac iaculis arcu. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Phasellus eu volutpat velit, id pulvinar arcu. In hac habitasse platea dictumst. Curabitur pharetra lacus lacus, non faucibus metus vulputate sed. Maecenas libero ante, mattis et nunc in, consectetur lacinia ex. Integer pretium eros libero, et sodales nisi convallis ut. Mauris sed libero rutrum, pharetra nisi scelerisque, maximus erat. Phasellus quam lorem, sagittis in eros vitae, facilisis malesuada dolor.</p>
+            <div class="quiz-card text-center">
+                <!-- Start Screen -->
+                <div id="quiz-start-screen">
+                    <h3 class="text-2xl font-bold text-blue-800 mb-4">Kuis Kesadaran Hukum</h3>
+                    <p class="text-gray-600 mb-8">Kuis ini terdiri dari beberapa pertanyaan singkat untuk mengukur pemahaman dasar hukum Anda. Hasil kuis ini bersifat edukatif dan bukan merupakan nasihat hukum.</p>
+                    <button id="start-quiz-btn" class="inline-block px-8 py-3 font-bold text-lg text-white btn-primary rounded-full shadow-lg">
+                        Mulai Kuis
+                    </button>
                 </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <i class="fas fa-user text-blue-600"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="font-bold text-gray-800">Siti Nurhaliza</h4>
-                            <p class="text-sm text-gray-600">Paralegal Desa - xxxxx  </p>
-                        </div>
-                    </div>
 
-                    <p class="text-gray-600">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer in neque neque. Cras euismod sapien viverra fermentum viverra. Vivamus lorem lectus, tincidunt sit amet nisi id, porttitor vulputate lorem. Phasellus volutpat, est in fringilla cursus, mauris mauris ullamcorper leo, at sodales leo tellus nec quam. Donec ac iaculis arcu. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Phasellus eu volutpat velit, id pulvinar arcu. In hac habitasse platea dictumst. Curabitur pharetra lacus lacus, non faucibus metus vulputate sed. Maecenas libero ante, mattis et nunc in, consectetur lacinia ex. Integer pretium eros libero, et sodales nisi convallis ut. Mauris sed libero rutrum, pharetra nisi scelerisque, maximus erat. Phasellus quam lorem, sagittis in eros vitae, facilisis malesuada dolor.</p>
-                </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <i class="fas fa-user text-blue-600"></i>
-                        </div>
-                        <div class="ml-4">
-                            <h4 class="font-bold text-gray-800">Budi Santoso</h4>
-                            <p class="text-sm text-gray-600">Kepala Desa xxx </p>
-                        </div>
+                <!-- Question Screen -->
+                <div id="quiz-question-screen" class="hidden">
+                    <div class="progress-bar-container mb-6">
+                        <div id="quiz-progress-bar" class="progress-bar" style="width: 0%;"></div>
                     </div>
-                    <p class="text-gray-600">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer in neque neque. Cras euismod sapien viverra fermentum viverra. Vivamus lorem lectus, tincidunt sit amet nisi id, porttitor vulputate lorem. Phasellus volutpat, est in fringilla cursus, mauris mauris ullamcorper leo, at sodales leo tellus nec quam. Donec ac iaculis arcu. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Phasellus eu volutpat velit, id pulvinar arcu. In hac habitasse platea dictumst. Curabitur pharetra lacus lacus, non faucibus metus vulputate sed. Maecenas libero ante, mattis et nunc in, consectetur lacinia ex. Integer pretium eros libero, et sodales nisi convallis ut. Mauris sed libero rutrum, pharetra nisi scelerisque, maximus erat. Phasellus quam lorem, sagittis in eros vitae, facilisis malesuada dolor.</p>
+                    <p id="question-counter" class="text-sm font-semibold text-gray-500 mb-2"></p>
+                    <h3 id="question-text" class="text-xl md:text-2xl font-bold text-blue-900 mb-8"></h3>
+                    <div id="answer-buttons" class="flex flex-col"></div>
+                    <button id="next-question-btn" class="hidden mt-6 inline-block px-8 py-3 font-bold text-lg text-white btn-primary rounded-full shadow-lg">
+                        Lanjut
+                    </button>
+                </div>
+
+                <!-- Result Screen -->
+                <div id="quiz-result-screen" class="hidden">
+                    <h3 class="text-2xl font-bold text-blue-800 mb-4">Hasil Kuis Anda</h3>
+                    <p class="text-5xl font-extrabold text-yellow-500 mb-4">
+                        <span id="score-text">0</span>/<span id="total-questions-text">0</span>
+                    </p>
+                    <p id="result-message" class="text-gray-700 text-lg mb-8 max-w-xl mx-auto"></p>
+                    <button id="restart-quiz-btn" class="inline-block px-8 py-3 font-bold text-lg text-blue-800 btn-secondary rounded-full shadow-lg">
+                        Coba Lagi
+                    </button>
                 </div>
             </div>
         </div>
-    </section> -->
+    </section>
 
     <!-- Contact Section -->
     <section id="kontak" class="py-20 bg-blue-900 text-white">
@@ -536,28 +826,29 @@
                 <h2 class="text-3xl md:text-4xl font-bold mb-4 text-yellow-300">Hubungi Kami</h2>
                 <div class="w-24 h-1 bg-yellow-400 mx-auto"></div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div>
+            <!-- Mengubah grid menjadi satu kolom dan menengahkan konten -->
+            <div class="flex justify-center">
+                <div class="w-full md:w-2/3 lg:w-1/2 text-center md:text-left">
                     <h3 class="text-2xl font-bold mb-6">Kantor Wilayah Kementerian Hukum Jambi</h3>
-                    <div class="space-y-4">
+                    <div class="space-y-4 inline-block text-left">
                         <div class="flex items-start">
                             <i data-feather="map-pin" class="w-6 h-6 text-yellow-400 mr-3 mt-1"></i>
                             <p>Jalan Kapten Sujono, Kota Baru<br>Kota Jambi, 36128</p>
                         </div>
                         <div class="flex items-center">
                             <i data-feather="phone" class="w-6 h-6 text-yellow-400 mr-3"></i>
-                            <p>628117497779</p>
+                            <p>0811-749-7779</p>
                         </div>
                         <div class="flex items-center">
                             <i data-feather="mail" class="w-6 h-6 text-yellow-400 mr-3"></i>
-                            <p>humaskumhamjambi@gmail.com</p>
+                            <p>kanwiljambi@kemenkumham.go.id</p>
                         </div>
                         <div class="flex items-center">
                             <i data-feather="clock" class="w-6 h-6 text-yellow-400 mr-3"></i>
                             <p>Senin - Jumat: 08.00 - 16.00</p>
                         </div>
                     </div>
-                    <div class="mt-8 flex space-x-4">
+                    <div class="mt-8 flex space-x-4 justify-center md:justify-start">
                         <a href="https://www.facebook.com/kemenkumjambi/"
                             class="w-10 h-10 bg-blue-800 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:text-blue-900 transition-all duration-300">
                             <i data-feather="facebook" class="w-5 h-5"></i>
@@ -576,32 +867,6 @@
                         </a>
                     </div>
                 </div>
-
-                <!-- <div class="bg-white p-8 rounded-lg text-gray-800">
-                    <h3 class="text-2xl font-bold mb-6 text-blue-800">Kirim Pesan</h3>
-                    <form id="contact-form">
-                        <div class="mb-4">
-                            <label class="block text-gray-700 mb-2" for="name">Nama Lengkap</label>
-                            <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 mb-2" for="email">Email</label>
-                            <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 mb-2" for="subject">Subjek</label>
-                            <input type="text" id="subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 mb-2" for="message">Pesan</label>
-                            <textarea id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
-                        </div>
-                        <button type="submit" class="w-full px-6 py-3 font-bold text-white btn-primary rounded-lg">
-                            Kirim Pesan
-                        </button>
-                    </form>
-                    <div id="form-message" class="mt-4 hidden p-3 rounded-lg"></div>
-                </div> -->
             </div>
         </div>
     </section>
@@ -623,7 +888,7 @@
     <footer class="bg-blue-900 text-white py-12">
         <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-                <h4 class="font-bold text-lg mb-4 text-yellow-300">JADI.</h4>
+                <h4 class="font-bold text-lg mb-4 text-yellow-300">JADI</h4>
                 <p class="text-sm text-blue-200">
                     Kantor Wilayah <br>
                     Kementerian Hukum Jambi
@@ -669,8 +934,8 @@
                     Kota Jambi, 36128
                 </p>
                 <p class="text-sm text-blue-200 mt-2">
-                    Email: info@jadi.go.id<br>
-                    Tel: (0741) 12345
+                    Email: kanwiljambi@kemenkumham.go.id<br>
+                    Tel: +628117497779
                 </p>
             </div>
         </div>
@@ -679,6 +944,12 @@
             <p class="text-xs text-blue-500 opacity-50 mt-1">Dikembangkan oleh FS</p>
         </div>
     </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
         // Initialize Feather Icons
@@ -700,38 +971,6 @@
             });
         });
 
-        // Intersection Observer for count-up animation
-        const observerOptions = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.5
-        };
-
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const el = entry.target;
-                    const end = parseInt(el.dataset.count);
-                    let current = 0;
-                    const increment = end / 100;
-
-                    const timer = setInterval(() => {
-                        current += increment;
-                        if (current >= end) {
-                            el.innerText = end.toLocaleString('id-ID');
-                            clearInterval(timer);
-                        } else {
-                            el.innerText = Math.floor(current).toLocaleString('id-ID');
-                        }
-                    }, 10);
-
-                    observer.unobserve(el);
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.count-up-stat').forEach(el => observer.observe(el));
-
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -745,31 +984,6 @@
                 }
             });
         });
-
-        // Form submission
-        const contactForm = document.getElementById('contact-form');
-        const formMessage = document.getElementById('form-message');
-
-        if (contactForm) {
-            contactForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                // In a real application, you would submit the form data to a server here
-                // For demo purposes, we'll just show a success message
-
-                formMessage.classList.remove('hidden');
-                formMessage.classList.add('bg-green-100', 'text-green-800');
-                formMessage.textContent = 'Terima kasih! Pesan Anda telah terkirim.';
-
-                // Reset form
-                this.reset();
-
-                // Hide message after 5 seconds
-                setTimeout(() => {
-                    formMessage.classList.add('hidden');
-                }, 5000);
-            });
-        }
 
         // Easter egg - ketik "fauzi" untuk melihat tanda pembuat
         let keys = [];
@@ -799,6 +1013,427 @@
                     setTimeout(() => signature.remove(), 1000);
                 }, 3000);
             }
+        });
+    </script>
+    <script>
+        // Script untuk Modal Video
+        document.addEventListener('DOMContentLoaded', function() {
+            const videoModal = document.getElementById('video-modal');
+            const closeModalBtn = document.getElementById('close-video-modal');
+            const videoIframe = document.getElementById('youtube-video');
+            const originalSrc = videoIframe.src;
+
+            function openModal() {
+                videoModal.classList.add('active');
+                // Pastikan video autoplay saat modal dibuka
+                if (!videoIframe.src.includes('autoplay=1')) {
+                    videoIframe.src += "&autoplay=1";
+                }
+            }
+
+            function closeModal() {
+                videoModal.classList.remove('active');
+                // Hentikan video dengan mereset src. Kita set ke string kosong lalu kembali ke originalSrc.
+                videoIframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+            }
+
+            // Buka modal saat halaman selesai dimuat
+            window.onload = openModal;
+
+            // Event listener untuk menutup modal
+            closeModalBtn.addEventListener('click', closeModal);
+            videoModal.addEventListener('click', (e) => {
+                if (e.target === videoModal) closeModal();
+            });
+        });
+
+        // Script untuk Peta Interaktif
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi peta, berpusat di Jambi
+            var map = L.map('map', { attributionControl: false }).setView([-1.6099, 103.607], 8);
+
+            // Tambahkan tile layer dari OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            // Ambil data dari API
+            fetch('/api/map-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data) return; // Tambahkan pengecekan jika data null
+                    data.forEach(kabData => {
+                        if (kabData.lat !== 0 && kabData.lon !== 0) {
+                            var marker = L.marker([kabData.lat, kabData.lon]).addTo(map);
+
+                            // Buat detail per kecamatan
+                            var kecamatanHtml = kabData.kecamatans.map(kec => {
+                                return `<p class="text-xs ml-2">${kec.nama_kecamatan}: <strong>${kec.total_tercapai_kecamatan} / ${kec.total_kelurahan_kecamatan}</strong></p>`;
+                            }).join('');
+
+                            // Buat konten popup
+                            var popupContent = `
+                                <div class="font-sans">
+                                    <h4 class="font-bold text-lg mb-2 text-blue-800">${kabData.nama_kabupaten.replace('Kabupaten ', '').replace('Kota ', '')}</h4>
+                                    <p class="text-sm"><strong>Total Posbankum: ${kabData.total_tercapai_kabupaten} / ${kabData.total_kelurahan_kabupaten}</strong></p>
+                                    <hr class="my-1">
+                                    ${kecamatanHtml}
+                                </div>
+                            `;
+
+                            marker.bindPopup(popupContent);
+                        }
+                    });
+                });
+        });
+
+        // Script untuk Testimonial Slider
+        document.addEventListener('DOMContentLoaded', function () {
+            const swiper = new Swiper('.testimonial-slider', {
+                // Optional parameters
+                loop: true,
+                slidesPerView: 1,
+                spaceBetween: 30,
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                },
+                // If we need pagination
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                // Navigation arrows
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                // Responsive breakpoints
+                breakpoints: {
+                    // when window width is >= 768px
+                    768: {
+                        slidesPerView: 2,
+                        spaceBetween: 30
+                    },
+                    // when window width is >= 1024px
+                    1024: {
+                        slidesPerView: 3,
+                        spaceBetween: 30
+                    }
+                }
+            });
+        });
+
+        // Script untuk Kuis Interaktif
+        document.addEventListener('DOMContentLoaded', function () {
+            // Bank Soal Lengkap
+            const allQuizQuestions = [
+                {
+                    question: "Jika Anda menemukan dompet di jalan, tindakan yang paling tepat menurut hukum adalah...",
+                    answers: [
+                        { text: "Menyimpannya karena dianggap rezeki.", correct: false },
+                        { text: "Mencari tahu pemiliknya atau menyerahkannya ke kantor polisi terdekat.", correct: true },
+                        { text: "Mengambil uangnya dan membuang dompetnya.", correct: false },
+                        { text: "Mengumumkan di media sosial tanpa melapor ke polisi.", correct: false }
+                    ]
+                },
+                {
+                    question: "Batas usia minimal seseorang dapat dimintai pertanggungjawaban pidana (diadili) di Indonesia adalah...",
+                    answers: [
+                        { text: "12 tahun", correct: true },
+                        { text: "17 tahun", correct: false },
+                        { text: "18 tahun", correct: false },
+                        { text: "Tidak ada batas usia", correct: false }
+                    ]
+                },
+                {
+                    question: "Penyebaran berita bohong (hoax) yang dapat menimbulkan keonaran di masyarakat dapat dijerat dengan undang-undang...",
+                    answers: [
+                        { text: "UU Lalu Lintas dan Angkutan Jalan", correct: false },
+                        { text: "UU Perlindungan Konsumen", correct: false },
+                        { text: "UU Informasi dan Transaksi Elektronik (ITE)", correct: true },
+                        { text: "KUHP saja", correct: false }
+                    ]
+                },
+                {
+                    question: "Dalam jual beli tanah, bukti kepemilikan yang paling kuat secara hukum adalah...",
+                    answers: [
+                        { text: "Kwitansi pembelian dengan materai.", correct: false },
+                        { text: "Surat Perjanjian Jual Beli di bawah tangan.", correct: false },
+                        { text: "Girik atau Letter C.", correct: false },
+                        { text: "Sertifikat Hak Milik (SHM) yang dikeluarkan oleh BPN.", correct: true }
+                    ]
+                },
+                {
+                    question: "Apa yang dimaksud dengan 'asas praduga tak bersalah'?",
+                    answers: [
+                        { text: "Setiap orang dianggap bersalah sampai terbukti sebaliknya.", correct: false },
+                        { text: "Seseorang tidak boleh dihukum dua kali untuk perbuatan yang sama.", correct: false },
+                        { text: "Setiap orang wajib dianggap tidak bersalah hingga ada putusan pengadilan yang berkekuatan hukum tetap.", correct: true },
+                        { text: "Membagikan isinya kepada orang yang membutuhkan.", correct: false }
+                    ]
+                },
+                {
+                    question: "Bantuan hukum gratis bagi masyarakat tidak mampu disediakan oleh negara melalui...",
+                    answers: [
+                        { text: "Lembaga Swadaya Masyarakat (LSM) umum.", correct: false },
+                        { text: "Organisasi Bantuan Hukum (OBH) yang terakreditasi.", correct: true },
+                        { text: "Hanya melalui pengacara swasta yang ditunjuk.", correct: false },
+                        { text: "Kantor polisi.", correct: false }
+                    ]
+                },
+                {
+                    question: "Perjanjian yang dibuat oleh dua pihak atau lebih untuk mengatur hak dan kewajiban disebut...",
+                    answers: [
+                        { text: "Undang-Undang", correct: false },
+                        { text: "Kontrak atau Perikatan", correct: true },
+                        { text: "Putusan Hakim", correct: false },
+                        { text: "Surat Kuasa", correct: false }
+                    ]
+                },
+                {
+                    question: "Seseorang yang melakukan pencemaran nama baik melalui media sosial dapat dituntut secara...",
+                    answers: [
+                        { text: "Hanya perdata", correct: false },
+                        { text: "Hanya pidana", correct: false },
+                        { text: "Pidana dan/atau perdata", correct: true },
+                        { text: "Tidak dapat dituntut", correct: false }
+                    ]
+                },
+                {
+                    question: "Apa sebutan untuk lembaga negara yang bertugas mengawasi penyelenggaraan pelayanan publik?",
+                    answers: [
+                        { text: "Komisi Pemberantasan Korupsi (KPK)", correct: false },
+                        { text: "Ombudsman Republik Indonesia", correct: true },
+                        { text: "Komisi Yudisial (KY)", correct: false },
+                        { text: "Dewan Perwakilan Rakyat (DPR)", correct: false }
+                    ]
+                },
+                {
+                    question: "Dalam hukum waris, ahli waris yang berhak menerima warisan adalah mereka yang memiliki hubungan...",
+                    answers: [
+                        { text: "Hanya hubungan pertemanan", correct: false },
+                        { text: "Hubungan darah atau hubungan perkawinan", correct: true },
+                        { text: "Hubungan kerja", correct: false },
+                        { text: "Hubungan tetangga", correct: false }
+                    ]
+                },
+                {
+                    question: "Tindakan mengambil barang milik orang lain tanpa izin dengan maksud untuk dimiliki secara melawan hukum disebut...",
+                    answers: [
+                        { text: "Penggelapan", correct: false },
+                        { text: "Penipuan", correct: false },
+                        { text: "Pencurian", correct: true },
+                        { text: "Perampasan", correct: false }
+                    ]
+                },
+                {
+                    question: "Surat Izin Mengemudi (SIM) C diperuntukkan bagi pengendara...",
+                    answers: [
+                        { text: "Mobil penumpang", correct: false },
+                        { text: "Truk barang", correct: false },
+                        { text: "Sepeda motor", correct: true },
+                        { text: "Bus umum", correct: false }
+                    ]
+                },
+                {
+                    question: "Jika seorang konsumen merasa dirugikan oleh produk yang dibelinya, ia dapat melapor ke...",
+                    answers: [
+                        { text: "Badan Perlindungan Konsumen Nasional (BPKN)", correct: true },
+                        { text: "Kamar Dagang dan Industri (KADIN)", correct: false },
+                        { text: "Kantor Pajak", correct: false },
+                        { text: "Kepolisian Sektor (Polsek)", correct: false }
+                    ]
+                },
+                {
+                    question: "Perkawinan di Indonesia dianggap sah apabila dilakukan menurut...",
+                    answers: [
+                        { text: "Hukum adat saja", correct: false },
+                        { text: "Hukum masing-masing agama dan kepercayaannya, serta dicatat oleh negara", correct: true },
+                        { text: "Keinginan kedua mempelai", correct: false },
+                        { text: "Persetujuan orang tua saja", correct: false }
+                    ]
+                },
+                {
+                    question: "Asas hukum yang menyatakan bahwa hukum yang bersifat khusus mengesampingkan hukum yang bersifat umum adalah...",
+                    answers: [
+                        { text: "Lex superior derogat legi inferiori", correct: false },
+                        { text: "Lex specialis derogat legi generali", correct: true },
+                        { text: "Lex posterior derogat legi priori", correct: false },
+                        { text: "Pacta sunt servanda", correct: false }
+                    ]
+                },
+                {
+                    question: "Saksi yang memberikan keterangan palsu di bawah sumpah dalam persidangan dapat dijerat dengan tindak pidana...",
+                    answers: [
+                        { text: "Fitnah", correct: false },
+                        { text: "Sumpah Palsu / Keterangan Palsu", correct: true },
+                        { text: "Pencemaran nama baik", correct: false },
+                        { text: "Penghinaan", correct: false }
+                    ]
+                }
+            ];
+
+            // Elemen-elemen UI
+            const startScreen = document.getElementById('quiz-start-screen');
+            const questionScreen = document.getElementById('quiz-question-screen');
+            const resultScreen = document.getElementById('quiz-result-screen');
+
+            const startBtn = document.getElementById('start-quiz-btn');
+            const nextBtn = document.getElementById('next-question-btn');
+            const restartBtn = document.getElementById('restart-quiz-btn');
+
+            const questionText = document.getElementById('question-text');
+            const answerButtons = document.getElementById('answer-buttons');
+            const questionCounter = document.getElementById('question-counter');
+            const progressBar = document.getElementById('quiz-progress-bar');
+
+            const scoreText = document.getElementById('score-text');
+            const totalQuestionsText = document.getElementById('total-questions-text');
+            const resultMessage = document.getElementById('result-message');
+
+            // Variabel state kuis
+            const questionsPerQuiz = 4; // Tampilkan 4 soal per kuis
+            let currentQuizSet = [];
+            let currentQuestionIndex = 0;
+            let score = 0;
+
+            // Event Listeners
+            startBtn.addEventListener('click', startQuiz);
+            nextBtn.addEventListener('click', () => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < currentQuizSet.length) {
+                    showQuestion();
+                } else {
+                    showResult();
+                }
+            });
+            restartBtn.addEventListener('click', startQuiz);
+            
+            /**
+             * Mengacak urutan elemen dalam sebuah array menggunakan algoritma Fisher-Yates.
+             * @param {Array} array - Array yang akan diacak.
+             */
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            /**
+             * Memulai atau mengulang kuis.
+             */
+            function startQuiz() {
+                currentQuestionIndex = 0;
+                score = 0;
+                
+                // Acak bank soal dan ambil sejumlah soal untuk sesi ini
+                shuffleArray(allQuizQuestions);
+                currentQuizSet = allQuizQuestions.slice(0, questionsPerQuiz);
+
+                startScreen.classList.add('hidden');
+                resultScreen.classList.add('hidden');
+                questionScreen.classList.remove('hidden');
+                nextBtn.classList.add('hidden');
+                showQuestion();
+            }
+            
+            /**
+             * Menampilkan pertanyaan saat ini.
+             */
+            function showQuestion() {
+                resetState();
+                let question = currentQuizSet[currentQuestionIndex];
+                questionText.innerText = question.question;
+                questionCounter.innerText = `Pertanyaan ${currentQuestionIndex + 1} dari ${currentQuizSet.length}`;
+                progressBar.style.width = `${((currentQuestionIndex + 1) / currentQuizSet.length) * 100}%`;
+
+                question.answers.forEach(answer => {
+                    const button = document.createElement('button');
+                    button.innerText = answer.text;
+                    button.classList.add('answer-option');
+                    if (answer.correct) {
+                        button.dataset.correct = answer.correct;
+                    }
+                    button.addEventListener('click', selectAnswer);
+                    answerButtons.appendChild(button);
+                });
+            }
+
+            /**
+             * Membersihkan state sebelum menampilkan pertanyaan baru.
+             */
+            function resetState() {
+                nextBtn.classList.add('hidden');
+                while (answerButtons.firstChild) {
+                    answerButtons.removeChild(answerButtons.firstChild);
+                }
+            }
+            
+            /**
+             * Dipanggil saat pengguna memilih sebuah jawaban.
+             */
+            function selectAnswer(e) {
+                const selectedBtn = e.target;
+                const isCorrect = selectedBtn.dataset.correct === "true";
+                if (isCorrect) {
+                    score++;
+                }
+                
+                Array.from(answerButtons.children).forEach(button => {
+                    button.disabled = true;
+                    if (button.dataset.correct === "true") {
+                        button.classList.add('correct');
+                    } else {
+                        button.classList.add('wrong');
+                    }
+                });
+                nextBtn.classList.remove('hidden');
+            }
+
+            /**
+             * Menampilkan layar hasil akhir kuis.
+             */
+            function showResult() {
+                questionScreen.classList.add('hidden');
+                resultScreen.classList.remove('hidden');
+                scoreText.innerText = score;
+                totalQuestionsText.innerText = currentQuizSet.length;
+
+                let message = "";
+                const percentage = (score / currentQuizSet.length) * 100;
+                if (percentage === 100) {
+                    message = "Luar biasa! Pemahaman hukum Anda sangat baik. Teruslah menjadi warga negara yang sadar hukum!";
+                } else if (percentage >= 75) {
+                    message = "Bagus! Anda sudah memahami dasar-dasar hukum dengan baik. Tingkatkan terus pengetahuan Anda.";
+                } else if (percentage >= 50) {
+                    message = "Cukup baik. Ada beberapa hal yang bisa dipelajari lagi. Jelajahi data di situs kami untuk menambah wawasan!";
+                } else {
+                    message = "Tidak apa-apa, belajar adalah proses. Manfaatkan informasi di situs ini untuk meningkatkan kesadaran hukum Anda.";
+                }
+                resultMessage.innerText = message;
+            }
+        });
+
+        // Script untuk Animasi Scroll
+        document.addEventListener('DOMContentLoaded', function () {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        observer.unobserve(entry.target); // Hentikan observasi setelah animasi berjalan
+                    }
+                });
+            }, {
+                threshold: 0.1 // Picu animasi saat 10% elemen terlihat
+            });
+
+            const elementsToReveal = document.querySelectorAll('.reveal-on-scroll');
+            elementsToReveal.forEach(el => {
+                observer.observe(el);
+            });
         });
     </script>
     <!-- Designed & developed with ❤️ by Fauzi Sihombing -->
